@@ -1,0 +1,321 @@
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.Intelimed\"\r\n        tools:targetApi=\"31\">\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"true\"\r\n            android:label=\"@string/app_name\"\r\n            android:theme=\"@style/Theme.Intelimed\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/app/src/main/AndroidManifest.xml	(date 1759929645417)
+@@ -12,17 +12,24 @@
+         android:supportsRtl="true"
+         android:theme="@style/Theme.Intelimed"
+         tools:targetApi="31">
++
++
+         <activity
+             android:name=".MainActivity"
+             android:exported="true"
+-            android:label="@string/app_name"
++            android:theme="@style/Theme.Intelimed" />
++
++
++        <activity
++            android:name=".OnBoardingActivity"
++            android:exported="true"
+             android:theme="@style/Theme.Intelimed">
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN" />
+-
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
+         </activity>
++
+     </application>
+ 
+-</manifest>
+\ No newline at end of file
++</manifest>
+Index: gradle/libs.versions.toml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>[versions]\r\nagp = \"8.8.0\"\r\nkotlin = \"2.0.0\"\r\ncoreKtx = \"1.16.0\"\r\njunit = \"4.13.2\"\r\njunitVersion = \"1.2.1\"\r\nespressoCore = \"3.6.1\"\r\nlifecycleRuntimeKtx = \"2.9.1\"\r\nactivityCompose = \"1.10.1\"\r\ncomposeBom = \"2024.04.01\"\r\n\r\n[libraries]\r\nandroidx-core-ktx = { group = \"androidx.core\", name = \"core-ktx\", version.ref = \"coreKtx\" }\r\njunit = { group = \"junit\", name = \"junit\", version.ref = \"junit\" }\r\nandroidx-junit = { group = \"androidx.test.ext\", name = \"junit\", version.ref = \"junitVersion\" }\r\nandroidx-espresso-core = { group = \"androidx.test.espresso\", name = \"espresso-core\", version.ref = \"espressoCore\" }\r\nandroidx-lifecycle-runtime-ktx = { group = \"androidx.lifecycle\", name = \"lifecycle-runtime-ktx\", version.ref = \"lifecycleRuntimeKtx\" }\r\nandroidx-activity-compose = { group = \"androidx.activity\", name = \"activity-compose\", version.ref = \"activityCompose\" }\r\nandroidx-compose-bom = { group = \"androidx.compose\", name = \"compose-bom\", version.ref = \"composeBom\" }\r\nandroidx-ui = { group = \"androidx.compose.ui\", name = \"ui\" }\r\nandroidx-ui-graphics = { group = \"androidx.compose.ui\", name = \"ui-graphics\" }\r\nandroidx-ui-tooling = { group = \"androidx.compose.ui\", name = \"ui-tooling\" }\r\nandroidx-ui-tooling-preview = { group = \"androidx.compose.ui\", name = \"ui-tooling-preview\" }\r\nandroidx-ui-test-manifest = { group = \"androidx.compose.ui\", name = \"ui-test-manifest\" }\r\nandroidx-ui-test-junit4 = { group = \"androidx.compose.ui\", name = \"ui-test-junit4\" }\r\nandroidx-material3 = { group = \"androidx.compose.material3\", name = \"material3\" }\r\n\r\n[plugins]\r\nandroid-application = { id = \"com.android.application\", version.ref = \"agp\" }\r\nkotlin-android = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlin\" }\r\nkotlin-compose = { id = \"org.jetbrains.kotlin.plugin.compose\", version.ref = \"kotlin\" }\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+--- a/gradle/libs.versions.toml	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/gradle/libs.versions.toml	(date 1759930880110)
+@@ -1,5 +1,5 @@
+ [versions]
+-agp = "8.8.0"
++agp = "8.9.0"
+ kotlin = "2.0.0"
+ coreKtx = "1.16.0"
+ junit = "4.13.2"
+@@ -8,6 +8,7 @@
+ lifecycleRuntimeKtx = "2.9.1"
+ activityCompose = "1.10.1"
+ composeBom = "2024.04.01"
++generativeai = "0.9.0"
+ 
+ [libraries]
+ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+@@ -24,6 +25,7 @@
+ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+ androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
++generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
+ 
+ [plugins]
+ android-application = { id = "com.android.application", version.ref = "agp" }
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"VcsDirectoryMappings\" defaultProject=\"true\" />\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+--- a/.idea/vcs.xml	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/.idea/vcs.xml	(date 1759682585114)
+@@ -1,4 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="VcsDirectoryMappings" defaultProject="true" />
++  <component name="VcsDirectoryMappings">
++    <mapping directory="$PROJECT_DIR$" vcs="Git" />
++  </component>
+ </project>
+\ No newline at end of file
+Index: gradle/wrapper/gradle-wrapper.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>#Tue Sep 30 13:23:52 BRT 2025\r\ndistributionBase=GRADLE_USER_HOME\r\ndistributionPath=wrapper/dists\r\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-8.10.2-bin.zip\r\nzipStoreBase=GRADLE_USER_HOME\r\nzipStorePath=wrapper/dists\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties
+--- a/gradle/wrapper/gradle-wrapper.properties	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/gradle/wrapper/gradle-wrapper.properties	(date 1759930880115)
+@@ -1,6 +1,6 @@
+ #Tue Sep 30 13:23:52 BRT 2025
+ distributionBase=GRADLE_USER_HOME
+ distributionPath=wrapper/dists
+-distributionUrl=https\://services.gradle.org/distributions/gradle-8.10.2-bin.zip
++distributionUrl=https\://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+ zipStoreBase=GRADLE_USER_HOME
+ zipStorePath=wrapper/dists
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.application)\r\n    alias(libs.plugins.kotlin.android)\r\n    alias(libs.plugins.kotlin.compose)\r\n}\r\n\r\nandroid {\r\n    namespace = \"br.com.ibm.intelimed\"\r\n    compileSdk = 35\r\n\r\n    defaultConfig {\r\n        applicationId = \"br.com.ibm.intelimed\"\r\n        minSdk = 33\r\n        targetSdk = 35\r\n        versionCode = 1\r\n        versionName = \"1.0\"\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_11\r\n        targetCompatibility = JavaVersion.VERSION_11\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"11\"\r\n    }\r\n    buildFeatures {\r\n        compose = true\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material3)\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/app/build.gradle.kts	(date 1759930814501)
+@@ -49,6 +49,7 @@
+     implementation(libs.androidx.ui.graphics)
+     implementation(libs.androidx.ui.tooling.preview)
+     implementation(libs.androidx.material3)
++    implementation(libs.generativeai)
+     testImplementation(libs.junit)
+     androidTestImplementation(libs.androidx.junit)
+     androidTestImplementation(libs.androidx.espresso.core)
+Index: app/src/main/java/br/com/ibm/intelimed/OnBoardingActivity.kt
+===================================================================
+diff --git a/app/src/main/java/br/com/ibm/intelimed/OnBoardingActivity.kt b/app/src/main/java/br/com/ibm/intelimed/OnBoardingActivity.kt
+new file mode 100644
+--- /dev/null	(date 1759930655786)
++++ b/app/src/main/java/br/com/ibm/intelimed/OnBoardingActivity.kt	(date 1759930655786)
+@@ -0,0 +1,187 @@
++package br.com.ibm.intelimed
++
++import android.os.Bundle
++import androidx.activity.ComponentActivity
++import androidx.activity.compose.setContent
++import androidx.compose.foundation.background
++import androidx.compose.foundation.border
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.*
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.filled.Add
++import androidx.compose.material.icons.filled.Chat
++import androidx.compose.material.icons.filled.Description
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.shadow
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.vector.ImageVector
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.tooling.preview.Preview
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++
++class OnBoardingActivity : ComponentActivity() {
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++        setContent {
++            MaterialTheme {
++                Surface(color = Color.White) {
++                    OnBoardingScreen()
++                }
++            }
++        }
++    }
++}
++
++private val Teal = Color(0xFF007B7F)
++private val CardBg = Color(0xFFFFFFFF)
++private val LightTeal = Color(0xFFB5D8D8)
++
++@Composable
++fun OnBoardingScreen() {
++    Column(
++        modifier = Modifier
++            .fillMaxSize()
++            .background(Color.White)
++    ) {
++        // Cabeçalho
++        Box(
++            modifier = Modifier
++                .fillMaxWidth()
++                .background(Teal)
++                .padding(vertical = 36.dp),
++            contentAlignment = Alignment.Center
++        ) {
++            Text(
++                text = "INTELIMED",
++                color = Color.White,
++                fontSize = 22.sp,
++                fontWeight = FontWeight.Bold
++            )
++        }
++
++        // Conteúdo principal
++        Column(
++            modifier = Modifier
++                .fillMaxWidth()
++                .weight(1f)
++                .padding(horizontal = 24.dp, vertical = 24.dp),
++            horizontalAlignment = Alignment.CenterHorizontally
++        ) {
++            Text(
++                text = "Onboarding",
++                fontSize = 24.sp,
++                fontWeight = FontWeight.Bold,
++                color = Teal
++            )
++
++            Spacer(Modifier.height(32.dp))
++
++            // Cards
++            OnBoardingCard(Icons.Filled.Add, "Passo 1", "Registre seus sintomas")
++            Spacer(Modifier.height(20.dp))
++            OnBoardingCard(Icons.Filled.Chat, "Passo 2", "Converse com seu médico")
++            Spacer(Modifier.height(20.dp))
++            OnBoardingCard(Icons.Filled.Description, "Passo 3", "Acompanhe seus relatórios")
++
++            Spacer(Modifier.height(40.dp))
++
++            // Indicadores
++            Row(
++                horizontalArrangement = Arrangement.Center,
++                modifier = Modifier.fillMaxWidth()
++            ) {
++                val dots = listOf(Teal, LightTeal, LightTeal)
++                dots.forEach { color ->
++                    Box(
++                        modifier = Modifier
++                            .size(8.dp)
++                            .padding(horizontal = 4.dp)
++                            .background(color, CircleShape)
++                    )
++                }
++            }
++
++            Spacer(Modifier.height(36.dp))
++
++            // Botões
++            Row(
++                modifier = Modifier
++                    .fillMaxWidth()
++                    .height(56.dp),
++                horizontalArrangement = Arrangement.SpaceBetween
++            ) {
++                OutlinedButton(
++                    onClick = { /* TODO: ação Pular */ },
++                    shape = RoundedCornerShape(50),
++                    border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.5.dp),
++                    modifier = Modifier
++                        .weight(1f)
++                        .fillMaxHeight()
++                ) {
++                    Text("Pular", color = Teal, fontSize = 16.sp)
++                }
++                Spacer(Modifier.width(16.dp))
++                Button(
++                    onClick = { /* TODO: ação Próximo */ },
++                    shape = RoundedCornerShape(50),
++                    colors = ButtonDefaults.buttonColors(containerColor = Teal),
++                    modifier = Modifier
++                        .weight(1f)
++                        .fillMaxHeight()
++                ) {
++                    Text("Próximo", fontSize = 16.sp)
++                }
++            }
++        }
++    }
++}
++
++@Composable
++fun OnBoardingCard(
++    icon: ImageVector,
++    title: String,
++    description: String
++) {
++    Card(
++        shape = RoundedCornerShape(20.dp),
++        colors = CardDefaults.cardColors(containerColor = CardBg),
++        modifier = Modifier
++            .fillMaxWidth()
++            .shadow(elevation = 4.dp, shape = RoundedCornerShape(20.dp))
++    ) {
++        Row(
++            verticalAlignment = Alignment.CenterVertically,
++            modifier = Modifier.padding(20.dp)
++        ) {
++            Box(
++                modifier = Modifier
++                    .size(52.dp)
++                    .border(2.dp, Teal.copy(alpha = 0.3f), CircleShape),
++                contentAlignment = Alignment.Center
++            ) {
++                Icon(
++                    imageVector = icon,
++                    contentDescription = null,
++                    tint = Teal,
++                    modifier = Modifier.size(28.dp)
++                )
++            }
++            Spacer(Modifier.width(20.dp))
++            Column {
++                Text(title, fontWeight = FontWeight.Bold, fontSize = 17.sp, color = Color.Black)
++                Text(description, color = Color.Gray, fontSize = 15.sp)
++            }
++        }
++    }
++}
++
++@Preview(showBackground = true, showSystemUi = true)
++@Composable
++fun OnBoardingPreview() {
++    OnBoardingScreen()
++}

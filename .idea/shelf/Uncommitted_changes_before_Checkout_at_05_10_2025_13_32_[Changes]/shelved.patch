@@ -1,0 +1,142 @@
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    xmlns:tools=\"http://schemas.android.com/tools\">\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:dataExtractionRules=\"@xml/data_extraction_rules\"\r\n        android:fullBackupContent=\"@xml/backup_rules\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/Theme.Intelimed\"\r\n        tools:targetApi=\"31\">\r\n        <activity\r\n            android:name=\".MainActivity\"\r\n            android:exported=\"true\"\r\n            android:label=\"@string/app_name\"\r\n            android:theme=\"@style/Theme.Intelimed\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+--- a/app/src/main/AndroidManifest.xml	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/app/src/main/AndroidManifest.xml	(date 1759681799152)
+@@ -12,17 +12,20 @@
+         android:supportsRtl="true"
+         android:theme="@style/Theme.Intelimed"
+         tools:targetApi="31">
++
++        <!-- ForgotPasswordActivity agora é a primeira tela a abrir -->
+         <activity
+-            android:name=".MainActivity"
++            android:name=".ForgotPasswordActivity"
+             android:exported="true"
+-            android:label="@string/app_name"
+             android:theme="@style/Theme.Intelimed">
+             <intent-filter>
+                 <action android:name="android.intent.action.MAIN" />
+-
+                 <category android:name="android.intent.category.LAUNCHER" />
+             </intent-filter>
+         </activity>
++
++        <!-- Outras telas -->
++        <activity android:name=".MainActivity" />
++
+     </application>
+-
+-</manifest>
+\ No newline at end of file
++</manifest>
+Index: app/src/main/java/br/com/ibm/intelimed/ForgotPasswordActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/br/com/ibm/intelimed/ForgotPasswordActivity.kt b/app/src/main/java/br/com/ibm/intelimed/ForgotPasswordActivity.kt
+new file mode 100644
+--- /dev/null	(date 1759681622654)
++++ b/app/src/main/java/br/com/ibm/intelimed/ForgotPasswordActivity.kt	(date 1759681622654)
+@@ -0,0 +1,76 @@
++package br.com.ibm.intelimed
++
++import android.os.Bundle
++import androidx.activity.ComponentActivity
++import androidx.activity.compose.setContent
++import androidx.compose.foundation.layout.*
++import androidx.compose.material3.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.text.input.TextFieldValue
++import androidx.compose.ui.tooling.preview.Preview
++import androidx.compose.ui.unit.dp
++import br.com.ibm.intelimed.ui.theme.IntelimedTheme
++
++class ForgotPasswordActivity : ComponentActivity() {
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++        setContent {
++            IntelimedTheme {
++                ForgotPassword()
++            }
++        }
++    }
++}
++
++@Composable
++fun ForgotPassword() {
++    var email by remember { mutableStateOf(TextFieldValue("")) }
++
++    Surface(
++        modifier = Modifier.fillMaxSize(),
++        color = MaterialTheme.colorScheme.background
++    ) {
++        Column(
++            modifier = Modifier
++                .fillMaxSize()
++                .padding(32.dp),
++            verticalArrangement = Arrangement.Center,
++            horizontalAlignment = Alignment.CenterHorizontally
++        ) {
++            Text(
++                text = "Recuperar Senha",
++                style = MaterialTheme.typography.headlineSmall
++            )
++
++            Spacer(modifier = Modifier.height(16.dp))
++
++            TextField(
++                value = email,
++                onValueChange = { email = it },
++                label = { Text("Digite seu e-mail") },
++                modifier = Modifier.fillMaxWidth()
++            )
++
++            Spacer(modifier = Modifier.height(24.dp))
++
++            Button(
++                onClick = {
++                    // Lógica para enviar link de recuperação
++                },
++                modifier = Modifier.fillMaxWidth()
++            ) {
++                Text("Enviar link de recuperação")
++            }
++        }
++    }
++}
++
++@Preview(showBackground = true)
++@Composable
++fun ForgotPasswordPreview() {
++    IntelimedTheme {
++        ForgotPassword()
++    }
++}
+Index: .idea/vcs.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"VcsDirectoryMappings\" defaultProject=\"true\" />\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/vcs.xml b/.idea/vcs.xml
+--- a/.idea/vcs.xml	(revision 22ce6dfd153835b903b37cb824ead7ea2aa51c1f)
++++ b/.idea/vcs.xml	(date 1759680684932)
+@@ -1,4 +1,6 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+-  <component name="VcsDirectoryMappings" defaultProject="true" />
++  <component name="VcsDirectoryMappings">
++    <mapping directory="$PROJECT_DIR$" vcs="Git" />
++  </component>
+ </project>
+\ No newline at end of file
