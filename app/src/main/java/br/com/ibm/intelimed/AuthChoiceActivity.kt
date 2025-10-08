@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +45,6 @@ fun AuthChoice() {
     val backgroundColor = Color(0xFF2FA49F)
     val buttonColor = Color(0xFF0E5E5B)
 
-    // Fundo geral
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -52,69 +52,112 @@ fun AuthChoice() {
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center
     ) {
-        // Bloco principal (logo + texto + botões)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-            // LOGO + TÍTULO
+            // LOGO
             Image(
                 painter = painterResource(id = R.drawable.ic_logo_intelimed),
                 contentDescription = "Logo Intelimed",
                 modifier = Modifier
-                    .size(300.dp) // menor e proporcional
-                    .padding(bottom = 12.dp),
+                    .size(260.dp)
+                    .padding(bottom = 4.dp),
                 contentScale = ContentScale.Fit
             )
 
+            // TÍTULO
             Text(
                 text = "INTELIMED",
                 color = Color.White,
-                fontSize = 34.sp,
+                fontSize = 54.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 48.dp)
+                modifier = Modifier.padding(bottom = 28.dp)
             )
 
-            // BOTÕES
+            // BLOCO BRANCO COM CONTEÚDO
             Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .shadow(12.dp, RoundedCornerShape(24.dp))
+                    .background(Color.White, RoundedCornerShape(24.dp))
+                    .padding(vertical = 32.dp, horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.Center
             ) {
-                Button(
-                    onClick = { /* TODO: Tela de login */ },
-                    modifier = Modifier
-                        .width(240.dp)
-                        .height(55.dp)
-                        .shadow(8.dp, RoundedCornerShape(40.dp)),
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                    shape = RoundedCornerShape(40.dp)
-                ) {
-                    Text(
-                        text = "Login",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                // MENSAGEM DE BOAS-VINDAS
+                Text(
+                    text = "Bem-vindo(a)!",
+                    color = Color(0xFF0E5E5B),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
-                Button(
-                    onClick = { /* TODO: Tela de cadastro */ },
+                Text(
+                    text = "Sua saúde em boas mãos.\nEscolha uma opção para continuar:",
+                    color = Color(0xFF2FA49F),
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp,
                     modifier = Modifier
-                        .width(240.dp)
-                        .height(55.dp)
-                        .shadow(8.dp, RoundedCornerShape(40.dp)),
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                    shape = RoundedCornerShape(40.dp)
+                        .padding(horizontal = 8.dp)
+                        .padding(bottom = 32.dp)
+                )
+
+                // BOTÕES
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    Text(
-                        text = "Cadastro",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Button(
+                        onClick = { /* TODO: Tela de login */ },
+                        modifier = Modifier
+                            .width(240.dp)
+                            .height(55.dp)
+                            .shadow(6.dp, RoundedCornerShape(40.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                        shape = RoundedCornerShape(40.dp)
+                    ) {
+                        Text(
+                            text = "Login",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Button(
+                        onClick = { /* TODO: Tela de cadastro */ },
+                        modifier = Modifier
+                            .width(240.dp)
+                            .height(55.dp)
+                            .shadow(6.dp, RoundedCornerShape(40.dp)),
+                        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                        shape = RoundedCornerShape(40.dp)
+                    ) {
+                        Text(
+                            text = "Cadastro",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
+
+            // RODAPÉ
+            Text(
+                text = "\nCuidando de você com tecnologia e dedicação 💚",
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 32.dp)
+            )
         }
     }
 }
