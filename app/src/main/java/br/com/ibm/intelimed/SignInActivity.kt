@@ -115,16 +115,22 @@ fun SignIn(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Campo de e-mail
+            // Campo de e-mail com validação
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    emailError = null // Limpa o erro quando o usuário digita
+                },
                 label = { Text("E-mail") },
+                isError = emailError != null, // Marca o campo como erro se houver mensagem
+                supportingText = {
+                    // Exibe a mensagem de erro abaixo do campo
+                    emailError?.let { Text(it, color = Color.Red) }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth()
             )
-
-            // TODO: VALIDAR SE O EMAIL ESTÁ EM FORMATO VÁLIDO
 
             Spacer(modifier = Modifier.height(12.dp))
 
