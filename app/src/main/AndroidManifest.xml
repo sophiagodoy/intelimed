@@ -25,18 +25,19 @@
             </intent-filter>
         </activity>
 
-    <activity
-        android:name=".TermsAndPrivacyActivity"
-        android:exported="false"
-        android:label="Termos e Privacidade"
-        android:theme="@style/Theme.Intelimed">
-    </activity>
+        <activity
+            android:name=".TermsOfUseActivity"
+            android:exported="false"
+            android:label="Termos e Privacidade"
+            android:theme="@style/Theme.Intelimed">
+        </activity>
 
-    <!-- Tela completa de termos -->
-    <activity
-        android:name=".TermsFullActivity"
-        android:exported="false"
-        android:label="Termos e Privacidade"
-        android:theme="@style/Theme.Intelimed" />
+        <!-- Tela completa de termos -->
+        <activity
+            android:name=".TermsFullActivity"
+            android:exported="false"
+            android:label="Termos e Privacidade"
+            android:theme="@style/Theme.Intelimed" />
+    </application>
 
 </manifest>
