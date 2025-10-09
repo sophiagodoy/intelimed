@@ -184,9 +184,18 @@ fun SignIn(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Botão de login
+            // Botão de login com validação
             Button(
-                onClick = { /* ação */ }, // TODO: IMPLEMENTAR LÓGICA DE AUTENTICAÇÃO
+                onClick = {
+                    // Valida os campos e armazena os erros
+                    emailError = validateEmail(email)
+                    passwordError = validatePassword(password)
+
+                    // Só prossegue se não houver erros
+                    if (emailError == null && passwordError == null) {
+                        // TODO: IMPLEMENTAR LÓGICA DE AUTENTICAÇÃO
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2FA49F),
                     contentColor = Color.White
