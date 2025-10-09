@@ -68,6 +68,24 @@ fun SignIn(modifier: Modifier = Modifier) {
     var passwordVisible by remember { mutableStateOf(false) } // Controla se a senha está visível
     val context = LocalContext.current // Para mudança de tela
 
+    // Função para validar o formato do e-mail
+    fun validateEmail(email: String): String? {
+        return when {
+            email.isBlank() -> "E-mail não pode estar vazio"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "E-mail inválido"
+            else -> null
+        }
+    }
+
+    // Função para validar a senha
+    fun validatePassword(password: String): String? {
+        return when {
+            password.isBlank() -> "Senha não pode estar vazia"
+            password.length < 6 -> "Senha deve ter no mínimo 6 caracteres"
+            else -> null
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
