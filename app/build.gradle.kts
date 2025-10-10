@@ -62,4 +62,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
     implementation("com.google.firebase:firebase-auth")
+
+    // Para o Visibility e VisibilityOff
+    implementation(libs.androidx.material.icons.extended)
 }

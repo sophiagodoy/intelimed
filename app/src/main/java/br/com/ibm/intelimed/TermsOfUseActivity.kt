@@ -21,12 +21,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 
-class TermsAndPrivacyActivity : ComponentActivity() {
+class TermsOfUseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             IntelimedTheme {
-                TermsAndPrivacy()
+                TermsOfUse()
             }
         }
     }
@@ -34,7 +34,7 @@ class TermsAndPrivacyActivity : ComponentActivity() {
 
 // Composable principal da tela
 @Composable
-fun TermsAndPrivacy(modifier: Modifier = Modifier) {
+fun TermsOfUse(modifier: Modifier = Modifier) {
 
     var aceitoTermos by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -149,6 +149,6 @@ fun TermsAndPrivacy(modifier: Modifier = Modifier) {
 @Composable
 fun TermsAndPrivacyPreview() {
     IntelimedTheme {
-        TermsAndPrivacy()
+        TermsOfUse()
     }
 }
