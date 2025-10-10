@@ -63,6 +63,12 @@
             android:label="Tela para recuperar senha"
             android:theme="@style/Theme.Intelimed"/>
 
+        <activity
+            android:name=".OnBoardingActivity"
+            android:exported="false"
+            android:label="Tela de Primeiros Passos"
+            android:theme="@style/Theme.Intelimed" />
+
     </application>
 
 </manifest>
