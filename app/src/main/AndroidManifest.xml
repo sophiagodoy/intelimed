@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Intelimed"
         tools:targetApi="31">
 
-        <!-- ✅ Tela inicial do app -->
+        <!-- ✅ Tela inicial -->
         <activity
             android:name=".AuthChoiceActivity"
             android:exported="true"
@@ -32,48 +32,75 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.Intelimed" />
 
-        <!-- Tela de Cadastro -->
+        <!-- Cadastro de médico -->
         <activity
-            android:name=".SignUpActivity"
+            android:name=".SignUpDoctorActivity"
             android:exported="false"
-            android:label="Tela de Cadastro"
-            android:theme="@style/Theme.Intelimed"/>
-        <activity
-            android:name=".TermsOfUseActivity"
-            android:exported="false"
-            android:label="Termos e Privacidade"
-            android:theme="@style/Theme.Intelimed"/>
-
-        <!-- Tela completa de termos -->
-        <activity
-            android:name=".TermsFullActivity"
-            android:exported="false"
-            android:label="Termos e Privacidade"
+            android:label="Cadastro de Médico"
             android:theme="@style/Theme.Intelimed" />
 
+        <!-- Login -->
         <activity
             android:name=".SignInActivity"
             android:exported="false"
             android:label="Tela de Login"
-            android:theme="@style/Theme.Intelimed"/>
+            android:theme="@style/Theme.Intelimed" />
 
+        <!-- Recuperação de senha -->
         <activity
             android:name=".ForgotPasswordActivity"
             android:exported="false"
-            android:label="Tela para recuperar senha"
-            android:theme="@style/Theme.Intelimed"/>
+            android:label="Recuperar Senha"
+            android:theme="@style/Theme.Intelimed" />
 
+        <!-- OnBoarding -->
         <activity
             android:name=".OnBoardingActivity"
             android:exported="false"
-            android:label="Tela de Primeiros Passos"
+            android:label="Boas-vindas"
             android:theme="@style/Theme.Intelimed" />
 
+        <!-- Encaminhamento -->
         <activity
             android:name=".GenerateForwardingActivity"
             android:exported="false"
-            android:label="Tela para gerar encaminhamento"
-            android:theme="@style/Theme.Intelimed"/>
+            android:label="Gerar Encaminhamento"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Orientações médicas -->
+        <activity
+            android:name=".MedicalGuidanceActivity"
+            android:exported="false"
+            android:label="Orientações Médicas"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Registro de sintomas -->
+        <activity
+            android:name=".RegistroSintomasActivity"
+            android:exported="false"
+            android:label="Registro de Sintomas"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Termos de uso resumido -->
+        <activity
+            android:name=".TermsOfUseActivity"
+            android:exported="false"
+            android:label="Termos e Privacidade"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Termos de uso completo -->
+        <activity
+            android:name=".TermsFullActivity"
+            android:exported="false"
+            android:label="Termos Completos"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Cadastro de paciente (versão dedicada, se existir) -->
+        <activity
+            android:name=".SignUpPatientActivity"
+            android:exported="false"
+            android:label="Cadastro de Paciente"
+            android:theme="@style/Theme.Intelimed" />
 
     </application>
 

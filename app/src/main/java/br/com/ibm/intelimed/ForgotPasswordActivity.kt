@@ -7,18 +7,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.tooling.preview.Preview
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 
@@ -27,105 +28,142 @@ class ForgotPasswordActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             IntelimedTheme {
-                ForgotPasswordScreen()
+                ForgotPassword()
             }
         }
     }
 }
 
 @Composable
-fun ForgotPasswordScreen(){
+fun ForgotPassword() {
 
+    val context = LocalContext.current
     var email by remember { mutableStateOf(TextFieldValue("")) }
 
-    Column(
+    // Paleta de cores da tela
+    val teal = Color(0xFF2FA49F)
+    val white = Color.White
+
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        //Cabeçalho Superior (Colorido)
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .background(Color(0xFF2F7D7D)),
-        contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // TODO: Colocar Icon
-                // Esperando Guilherme
+            .fillMaxSize()
+            .background(teal)
+    ) {
 
-                Text(
-                    text = "INTELIMED",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Text(
-            text = "RECUPERAR SENHA",
-            color = Color(0xFF2F7D7D),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.ExtraBold
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Campo para email
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it},
-            label = {Text("E-mail")},
+        // Seta de voltar no topo
+        Row(
             modifier = Modifier
-                .fillMaxWidth(fraction = 0.85f)
-                .height(60.dp),
-            shape = RoundedCornerShape(10.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        //Botão que enviará o link via email para redefinição
-
-        Button(
-            onClick = {/* TODO: implementar lógica*/},
-            colors = ButtonDefaults.buttonColors(containerColor = Color (0xFF2F7D7D)),
-            shape = RoundedCornerShape(10.dp),
-            modifier = Modifier
-                .fillMaxWidth(fraction = 0.85f)
-                .height(55.dp)
-        ){
-            Text(
-                text = "Enviar link",
-                fontSize = 18.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 48.dp)
+                .align(Alignment.TopStart)
+                .clickable {
+                    (context as? ComponentActivity)?.finish()
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Voltar",
+                tint = Color.White
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // Conteúdo centralizado
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Logo / título
+            Text(
+                text = "INTELIMED",
+                color = white,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp
+            )
 
-        //Texto clicável "Voltar pra aba de login (todo: implementar )"
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Voltar ao Login",
-            color = Color(0xFF2F7D7D),
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.clickable{
-                // TODO : ir pra outra tela
+            // Subtítulo
+            Text(
+                text = "Recuperar Senha",
+                color = white.copy(alpha = 0.9f),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // Card branco com o formulário
+            Column(
+                modifier = Modifier
+                    .background(white, RoundedCornerShape(20.dp))
+                    .padding(vertical = 32.dp, horizontal = 20.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Informe o e-mail cadastrado para receber o link de redefinição:",
+                    textAlign = TextAlign.Center,
+                    color = teal,
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("E-mail") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = { /* TODO: Implementar envio do link de redefinição */ },
+                    colors = ButtonDefaults.buttonColors(containerColor = teal),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text(
+                        text = "Enviar link",
+                        fontSize = 18.sp,
+                        color = white,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Voltar ao Login",
+                    color = teal,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable {
+                        val intent = android.content.Intent(context, SignInActivity::class.java)
+                        context.startActivity(intent)
+                    }
+                )
             }
-        )
+        }
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun ForgotPasswordPreview(){
-    IntelimedTheme{
-        ForgotPasswordScreen()
+fun ForgotPasswordPreview() {
+    IntelimedTheme {
+        ForgotPassword()
     }
 }

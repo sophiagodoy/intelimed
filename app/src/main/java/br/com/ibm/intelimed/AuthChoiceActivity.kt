@@ -24,6 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 
 class AuthChoiceActivity : ComponentActivity() {
@@ -44,6 +46,7 @@ class AuthChoiceActivity : ComponentActivity() {
 fun AuthChoice() {
     val backgroundColor = Color(0xFF2FA49F)
     val buttonColor = Color(0xFF0E5E5B)
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -115,7 +118,10 @@ fun AuthChoice() {
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     Button(
-                        onClick = { /* TODO: Tela de login */ },
+                        onClick = {
+                            val intent = Intent(context, SignInActivity::class.java)
+                            context.startActivity(intent)
+                        },
                         modifier = Modifier
                             .width(240.dp)
                             .height(55.dp)
@@ -132,7 +138,10 @@ fun AuthChoice() {
                     }
 
                     Button(
-                        onClick = { /* TODO: Tela de cadastro */ },
+                        onClick = {
+                            val intent = Intent(context, SignUpPatientActivity::class.java)
+                            context.startActivity(intent)
+                        },
                         modifier = Modifier
                             .width(240.dp)
                             .height(55.dp)
