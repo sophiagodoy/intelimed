@@ -101,22 +101,24 @@
             android:label="Termos Completos"
             android:theme="@style/Theme.Intelimed" />
 
-        <!-- Cadastro de paciente (versão dedicada, se existir) -->
+        <!-- Cadastro de paciente -->
         <activity
             android:name=".SignUpPatientActivity"
             android:exported="false"
             android:label="Cadastro de Paciente"
             android:theme="@style/Theme.Intelimed" />
 
-        <!-- Tela de relatórios do paciente -->
+        <!-- Tela de relatórios -->
         <activity
             android:name=".ReportsActivity"
             android:exported="false"
             android:label="Relatórios" />
 
+        <!-- Tela de lista de pacientes -->
         <activity
             android:name=".PatientListActivity"
             android:exported="false"
-            android:label="Cadastro de Paciente" />
+            android:label="Lista de Pacientes"
+            android:theme="@style/Theme.Intelimed" />
     </application>
 </manifest>
