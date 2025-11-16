@@ -120,5 +120,12 @@
             android:exported="false"
             android:label="Lista de Pacientes"
             android:theme="@style/Theme.Intelimed" />
+
+        <!-- Tela do chat -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false"
+            android:label="Chat"
+            android:theme="@style/Theme.Intelimed" />
     </application>
 </manifest>
