@@ -64,7 +64,7 @@ fun loginUser(email: String, password: String, context: Context) {
                         autenticate(email, password, context)
                     } else {
                         // Se não encontrou em nenhuma
-                        Toast.makeText(context, "E-mail não encontrado. Verifique o email informado ou faça o cadastro no app.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "E-mail não encontrado.", Toast.LENGTH_LONG).show()
                     }
                 }
         }
@@ -134,7 +134,7 @@ fun autenticate(email: String, password: String, context: Context) {
                         "Senha incorreta. Tente novamente."
 
                     is com.google.firebase.auth.FirebaseAuthInvalidUserException ->
-                        "E-mail não encontrado. Verifique o email informado ou faça o cadastro no app."
+                        "E-mail não encontrado."
 
                     else ->
                         exception?.message ?: "Erro desconhecido ao fazer login."
