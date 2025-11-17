@@ -224,7 +224,7 @@ fun RegistroSintomas() {
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF009688),
+                    containerColor = Color(0xFF007C7A),
                     titleContentColor = Color.White
                 )
             )
