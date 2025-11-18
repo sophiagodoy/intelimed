@@ -84,42 +84,57 @@ fun autenticate(email: String, password: String, context: Context) {
                     val uid = user.uid
 
                     // 🔍 Primeiro vê se é médico
-                    db.collection("medico").document(uid).get()
-                        .addOnSuccessListener { medicoDoc ->
-                            if (medicoDoc.exists()) {
+                    db.collection("medico")
+                        .whereEqualTo("email", email)
+                        .get()
+                        .addOnSuccessListener { medicoResult ->
+
+                            if (!medicoResult.isEmpty) {
+                                val medicoDoc = medicoResult.documents[0]
 
                                 val isFirst = medicoDoc.getBoolean("primeiroLogin") ?: false
+
                                 if (isFirst) {
                                     Toast.makeText(context, "Bem-vindo ao seu primeiro acesso!", Toast.LENGTH_LONG).show()
                                     context.startActivity(Intent(context, TermsOfUseActivity::class.java))
-                                    db.collection("medico").document(uid).update("primeiroLogin", false)
+
+                                    // Atualiza o campo no documento correto
+                                    medicoDoc.reference.update("primeiroLogin", false)
                                 } else {
                                     Toast.makeText(context, "Bem-vindo, médico!", Toast.LENGTH_SHORT).show()
                                     context.startActivity(Intent(context, MainDoctorActivity::class.java))
                                 }
 
-                            } else {
-                                // 🔍 Se não é médico → paciente
-                                db.collection("paciente").document(uid).get()
-                                    .addOnSuccessListener { pacienteDoc ->
-                                        if (pacienteDoc.exists()) {
-
-                                            val isFirst = pacienteDoc.getBoolean("primeiroLogin") ?: false
-                                            if (isFirst) {
-                                                Toast.makeText(context, "Bem-vindo ao seu primeiro acesso!", Toast.LENGTH_LONG).show()
-                                                context.startActivity(Intent(context, TermsOfUseActivity::class.java))
-                                                db.collection("paciente").document(uid).update("primeiroLogin", false)
-                                            } else {
-                                                Toast.makeText(context, "Bem-vindo, paciente!", Toast.LENGTH_SHORT).show()
-                                                context.startActivity(Intent(context, MainPatientActivity::class.java))
-                                            }
-
-                                        } else {
-                                            Toast.makeText(context, "Usuário não encontrado no banco de dados.", Toast.LENGTH_LONG).show()
-                                        }
-                                    }
+                                return@addOnSuccessListener
                             }
+
+                            // Se não for médico, verifica paciente
+                            db.collection("paciente")
+                                .whereEqualTo("email", email)
+                                .get()
+                                .addOnSuccessListener { pacienteResult ->
+
+                                    if (!pacienteResult.isEmpty) {
+                                        val pacienteDoc = pacienteResult.documents[0]
+
+                                        val isFirst = pacienteDoc.getBoolean("primeiroLogin") ?: false
+
+                                        if (isFirst) {
+                                            Toast.makeText(context, "Bem-vindo ao seu primeiro acesso!", Toast.LENGTH_LONG).show()
+                                            context.startActivity(Intent(context, TermsOfUseActivity::class.java))
+                                            pacienteDoc.reference.update("primeiroLogin", false)
+                                        } else {
+                                            Toast.makeText(context, "Bem-vindo, paciente!", Toast.LENGTH_SHORT).show()
+                                            context.startActivity(Intent(context, MainPatientActivity::class.java))
+                                        }
+
+                                    } else {
+                                        Toast.makeText(context, "Usuário não encontrado no banco de dados.", Toast.LENGTH_LONG).show()
+                                    }
+
+                                }
                         }
+
                 } else {
                     Toast.makeText(context, "Por favor, verifique seu e-mail antes de entrar.", Toast.LENGTH_LONG).show()
                     auth.signOut()
