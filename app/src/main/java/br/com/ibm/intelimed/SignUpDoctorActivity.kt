@@ -29,8 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
@@ -253,12 +255,13 @@ fun SignUpDoctor() {
             ) {
 
                 OutlinedTextField(
-                    value = query,
-                    onValueChange = {
-                        query = it
-                        expanded = true
-                    },
+                    value = if (selected.isEmpty()) "Selecione..." else selected.joinToString(),
+                    onValueChange = {},
+                    readOnly = true, // ⛔ impede digitação
                     label = { Text("Especialidades") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                    },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth(),
@@ -473,5 +476,13 @@ fun SignUpDoctor() {
                 }
             )
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PreviewSignUpDoctor() {
+    IntelimedTheme {
+        SignUpDoctor()
     }
 }
