@@ -80,6 +80,7 @@ fun saveDoctorToFirestore(
     val db = Firebase.firestore
 
     val dados = hashMapOf(
+        "uid" to uid,
         "nome" to nome,
         "email" to email,
         "crm" to crm,

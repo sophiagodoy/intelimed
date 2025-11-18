@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class SelectDoctorActivity : ComponentActivity() {
@@ -93,6 +94,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                     if (especialidadeSelecionada in listaEsp) {
                         lista.add(
                             Medico(
+                                uid = doc.getString("uid") ?: doc.id,
                                 nome = doc.getString("nome") ?: "Sem nome",
                                 crm = doc.getString("crm") ?: "",
                                 especialidades = listaEsp
@@ -108,6 +110,21 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                 erro = "Erro ao carregar médicos!"
                 loadingMedicos = false
             }
+    }
+
+    // ENVIAR SOLICITAÇÃO PARA O MÉDICO
+    fun enviarSolicitacao(medicoId: String, pacienteId: String) {
+        val db = FirebaseFirestore.getInstance()
+
+        val dados = hashMapOf(
+            "pacienteId" to pacienteId,
+            "medicoId" to medicoId,
+            "status" to "pendente",
+            "timestamp" to com.google.firebase.Timestamp.now()
+        )
+
+        db.collection("solicitacoes")
+            .add(dados)
     }
 
     // UI
@@ -280,8 +297,17 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
 
                             // BOTÃO
                             Button(
-                                onClick = {medicoSelecionado = medico
-                                    showDialog = true },
+                                onClick = {
+                                    // Envia a solicitação para o Firestore
+                                    enviarSolicitacao(
+                                        medicoId = medico.uid, // agora você tem o UID do médico
+                                        pacienteId = FirebaseAuth.getInstance().currentUser!!.uid
+                                    )
+
+                                    //  Abre o popup
+                                    medicoSelecionado = medico
+                                    showDialog = true
+                                },
                                 colors = ButtonDefaults.buttonColors(containerColor = teal),
                                 shape = RoundedCornerShape(10.dp)
                             ) {
@@ -339,6 +365,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
 }
 
 data class Medico(
+    val uid: String = "",
     val nome: String,
     val crm: String,
     val especialidades: List<String>
