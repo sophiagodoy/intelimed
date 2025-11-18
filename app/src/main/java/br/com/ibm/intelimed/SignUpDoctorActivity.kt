@@ -338,63 +338,79 @@ fun SignUpDoctor() {
             Button(
                 onClick = {
 
-                    var temErro = false
+                    val nomeTrim = nome.trim()
+                    val crmTrim = crm.trim()
+                    val emailTrim = email.trim()
 
-                    // CAMPOS EM BRANCO
-                    if (
-                        nome.isBlank() ||
-                        crm.isBlank() ||
-                        email.isBlank() ||
-                        senha.isBlank() ||
-                        confirmarSenha.isBlank() ||
-                        selected.isEmpty() ||
-                        (selected.contains("Outras") && outraEspecialidade.isBlank())
-                    ) {
-                        Toast.makeText(context, "Preencha todos os campos obrigatórios.", Toast.LENGTH_LONG).show()
-                        temErro = true
-                    }
+                    // NORMALIZA CRM
+                    val crmNorm = crmTrim
+                        .uppercase()              // força maiúsculas
+                        .replace("–", "-")        // corrige hífen tipográfico
+                        .replace("—", "-")        // corrige em dash
+                        .replace(" ", "")         // remove espaços invisíveis
 
-                    // SENHAS DIFERENTES
-                    if (senha != confirmarSenha) {
-                        Toast.makeText(context, "As senhas não coincidem.", Toast.LENGTH_LONG).show()
-                        temErro = true
-                    }
+                    val nomePartes = nomeTrim.split("\\s+".toRegex())
 
-                    // EMAIL INVÁLIDO
-                    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        Toast.makeText(context, "E-mail inválido.", Toast.LENGTH_LONG).show()
-                        temErro = true
-                    }
+                    when {
 
-                    // CRM INVÁLIDO
-                    if (!crm.matches(Regex("^\\d{4,6}-[A-Z]{2}$"))) {
-                        Toast.makeText(context, "CRM inválido. Use o formato 12345-SP.", Toast.LENGTH_LONG).show()
-                        temErro = true
-                    }
+                        // CAMPOS EM BRANCO
+                        nomeTrim.isBlank() ||
+                                crmNorm.isBlank() ||
+                                emailTrim.isBlank() ||
+                                senha.isBlank() ||
+                                confirmarSenha.isBlank() ||
+                                selected.isEmpty() ||
+                                (selected.contains("Outras") && outraEspecialidade.isBlank()) -> {
 
-                    if (!temErro) {
-
-                        val especialidadesFinal = selected.toMutableList()
-
-                        if (selected.contains("Outras")) {
-                            especialidadesFinal.remove("Outras")
-                            especialidadesFinal.add(outraEspecialidade)
+                            Toast.makeText(context, "Preencha todos os campos obrigatórios.", Toast.LENGTH_LONG).show()
                         }
 
-                        checkCRMExists(crm) { crmExiste ->
+                        // NOME PRECISA TER NOME + SOBRENOME
+                        nomePartes.size < 2 -> {
+                            Toast.makeText(context, "Insira nome e sobrenome completos.", Toast.LENGTH_LONG).show()
+                        }
 
-                            if (crmExiste) {
-                                Toast.makeText(context, "Este CRM já está cadastrado.", Toast.LENGTH_LONG).show()
+                        // E-MAIL INVÁLIDO
+                        !android.util.Patterns.EMAIL_ADDRESS.matcher(emailTrim).matches() -> {
+                            Toast.makeText(context, "E-mail inválido.", Toast.LENGTH_LONG).show()
+                        }
 
-                            } else {
-                                registerDoctorAuth(
-                                    email = email,
-                                    password = senha,
-                                    nome = nome,
-                                    crm = crm,
-                                    especialidade = especialidadesFinal,
-                                    context = context
-                                )
+                        // CRM INVÁLIDO (AGORA USANDO crmNorm)
+                        !crmNorm.matches(Regex("^\\d{4,6}-[A-Z]{2}$")) -> {
+                            Toast.makeText(context, "CRM inválido. Use o formato 12345-SP.", Toast.LENGTH_LONG).show()
+                        }
+
+                        // SENHAS DIFERENTES
+                        senha != confirmarSenha -> {
+                            Toast.makeText(context, "As senhas não coincidem.", Toast.LENGTH_LONG).show()
+                        }
+
+                        else -> {
+
+                            // MONTA A LISTA FINAL DE ESPECIALIDADES
+                            val especialidadesFinal = selected.toMutableList()
+
+                            if (selected.contains("Outras")) {
+                                especialidadesFinal.remove("Outras")
+                                especialidadesFinal.add(outraEspecialidade)
+                            }
+
+                            // VERIFICA CRM NO FIRESTORE (AGORA USANDO crmNorm)
+                            checkCRMExists(crmNorm) { crmExiste ->
+
+                                if (crmExiste) {
+                                    Toast.makeText(context, "Este CRM já está cadastrado.", Toast.LENGTH_LONG).show()
+
+                                } else {
+                                    registerDoctorAuth(
+                                        email = emailTrim,
+                                        password = senha,
+                                        nome = nomeTrim,
+                                        crm = crmNorm, // SALVA CRM NORMALIZADO
+                                        especialidade = especialidadesFinal,
+                                        context = context
+                                    )
+                                }
                             }
                         }
                     }

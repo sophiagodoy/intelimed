@@ -149,7 +149,7 @@ fun SignUp(modifier: Modifier = Modifier) {
     var senhaVisivel by remember { mutableStateOf(false) }
     var confirmarSenhaVisivel by remember { mutableStateOf(false) }
 
-    // 🔹 Novo estado para tipo de usuário
+    // Novo estado para tipo de usuário
     var tipoUsuario by remember { mutableStateOf("Paciente") }
 
     // Layout principal com Box para colocar a seta no topo e conteúdo centralizado
@@ -318,25 +318,38 @@ fun SignUp(modifier: Modifier = Modifier) {
                 // Botão Cadastrar
                 Button(
                     onClick = {
+
                         val nomePartes = nome.trim().split("\\s+".toRegex())
+
                         when {
+
                             nome.isBlank() -> {
                                 Toast.makeText(context, "Por favor, insira seu nome.", Toast.LENGTH_SHORT).show()
                             }
+
                             nomePartes.size < 2 -> {
                                 Toast.makeText(context, "Por favor, insira nome e sobrenome.", Toast.LENGTH_SHORT).show()
                             }
-                            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+
+                            email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                                 Toast.makeText(context, "E-mail inválido.", Toast.LENGTH_SHORT).show()
                             }
-                            senha.length < 6 -> {
+
+                            senha.isBlank() || senha.length < 6 -> {
                                 Toast.makeText(context, "A senha deve ter pelo menos 6 caracteres.", Toast.LENGTH_SHORT).show()
                             }
-                            senha != confirmarSenha -> {
+
+                            confirmarSenha.isBlank() || senha != confirmarSenha -> {
                                 Toast.makeText(context, "As senhas não coincidem.", Toast.LENGTH_SHORT).show()
                             }
+
                             else -> {
-                                registerPatientAuth(email, senha, nome, context)
+                                registerPatientAuth(
+                                    email = email.trim(),
+                                    password = senha,
+                                    nome = nome.trim(),
+                                    context = context
+                                )
                             }
                         }
                     },
