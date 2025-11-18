@@ -3,8 +3,6 @@ package br.com.ibm.intelimed
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -102,6 +100,7 @@ fun saveDoctorToFirestore(
         }
 }
 
+/*
 // VALIDAÇÕES
 fun nomeValido(nome: String): Boolean {
     val partes = nome.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }
@@ -139,6 +138,7 @@ fun mensagemForcaSenha(senha: String): String {
     val faltando = checks.filter { !it.second }.map { it.first }
     return if (faltando.isEmpty()) "Senha forte" else "Faltando: " + faltando.joinToString(", ")
 }
+*/
 
 // LISTA DE ESPECIALIDADES
 val ESPECIALIDADES = listOf(
@@ -178,55 +178,41 @@ fun SignUpDoctor() {
     var senha by remember { mutableStateOf("") }
     var confirmarSenha by remember { mutableStateOf("") }
 
-    var tipoUsuario by remember { mutableStateOf("Médico") }
-
-    // SENHA VISIBILIDADE
     var senhaVisivel by remember { mutableStateOf(false) }
     var confirmarSenhaVisivel by remember { mutableStateOf(false) }
 
-    // ESPECIALIDADES (MULTI-SELEÇÃO)
-    var query by remember { mutableStateOf("") }
-    var selected by remember { mutableStateOf(mutableListOf<String>()) }
-    var outraEspecialidade by remember { mutableStateOf("") }
+    // Multi seleção
+    val selected = remember { mutableStateListOf<String>() }
     var expanded by remember { mutableStateOf(false) }
-
-    val filtradas = remember(query, selected) {
-        ESPECIALIDADES.filter {
-            it.contains(query, ignoreCase = true) || it == "Outras"
-        }
-    }
-
-    fun toggleItem(item: String) {
-        if (selected.contains(item)) {
-            selected.remove(item)
-        } else {
-            selected.add(item)
-        }
-    }
+    var outraEspecialidade by remember { mutableStateOf("") }
 
     Box(
-        Modifier
+        modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF2FA49F))
+            .background(Color(0xFF2FA49F)),
+        contentAlignment = Alignment.Center
     ) {
 
         Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier
+                .fillMaxWidth(0.90f)
+                .wrapContentHeight()
+                .padding(top = 24.dp)
+                .background(Color.White, RoundedCornerShape(20.dp))
                 .padding(24.dp)
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            // TÍTULO
             Text(
-                "Cadastro Médico",
-                fontSize = 22.sp,
+                text = "Cadastro Médico",
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF2FA49F)
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
             // NOME
             OutlinedTextField(
@@ -238,17 +224,17 @@ fun SignUpDoctor() {
 
             Spacer(Modifier.height(12.dp))
 
-            // CRM (MÁSCARA AUTOMÁTICA)
+            // CRM
             OutlinedTextField(
                 value = crm,
-                onValueChange = { crm = formatarCrmEntrada(it) },
+                onValueChange = { crm = it },
                 label = { Text("CRM (ex: 12345-SP)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(12.dp))
 
-            // ESPECIALIDADES MULTI-SELEÇÃO
+            // DROPDOWN ESPECIALIDADES
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
@@ -257,47 +243,45 @@ fun SignUpDoctor() {
                 OutlinedTextField(
                     value = if (selected.isEmpty()) "Selecione..." else selected.joinToString(),
                     onValueChange = {},
-                    readOnly = true, // ⛔ impede digitação
+                    readOnly = true,
                     label = { Text("Especialidades") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-                    },
                     modifier = Modifier
                         .menuAnchor()
                         .fillMaxWidth(),
-                    singleLine = true
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }
                 )
 
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    filtradas.forEach { item ->
+                    ESPECIALIDADES.forEach { item ->
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (selected.contains(item)) {
                                         Icon(
-                                            Icons.Filled.Check,
+                                            imageVector = Icons.Default.Check,
                                             contentDescription = null,
                                             tint = Color(0xFF2FA49F)
                                         )
-                                        Spacer(Modifier.width(8.dp))
+                                        Spacer(Modifier.width(6.dp))
                                     }
                                     Text(item)
                                 }
                             },
                             onClick = {
-                                toggleItem(item)
+                                if (selected.contains(item)) selected.remove(item)
+                                else selected.add(item)
                             }
                         )
                     }
                 }
             }
 
-            // CAMPO EXTRA (OUTRAS)
-            if (selected.contains("Outras")) {
-                Spacer(Modifier.height(8.dp))
+            // CAMPO "OUTRAS"
+            if ("Outras" in selected) {
+                Spacer(Modifier.height(10.dp))
                 OutlinedTextField(
                     value = outraEspecialidade,
                     onValueChange = { outraEspecialidade = it },
@@ -336,17 +320,21 @@ fun SignUpDoctor() {
                 modifier = Modifier.fillMaxWidth()
             )
 
+            /*
             val feedback = mensagemForcaSenha(senha)
             if (feedback.isNotEmpty()) {
                 Text(
-                    feedback,
+                    text = feedback,
                     fontSize = 12.sp,
-                    color = if (senhaForte(senha)) Color(0xFF2FA49F) else Color.Red
+                    color = if (senhaForte(senha)) Color(0xFF2FA49F) else Color.Red,
+                    modifier = Modifier.align(Alignment.Start)
                 )
             }
+            */
 
             Spacer(Modifier.height(12.dp))
 
+            // CONFIRMAR SENHA
             OutlinedTextField(
                 value = confirmarSenha,
                 onValueChange = { confirmarSenha = it },
@@ -363,118 +351,61 @@ fun SignUpDoctor() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(22.dp))
 
-            // Seletor Paciente / Médico
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Button(
-                    onClick = {
-                        tipoUsuario = "Paciente"
-                        val intent = android.content.Intent(context, SignUpPatientActivity::class.java)
-                        context.startActivity(intent)
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (tipoUsuario == "Paciente") Color(0xFF2FA49F) else Color.LightGray,
-                        contentColor = if (tipoUsuario == "Paciente") Color.White else Color.DarkGray
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Paciente", fontSize = 16.sp)
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Button(
-                    onClick = { tipoUsuario = "Médico" },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (tipoUsuario == "Médico") Color(0xFF2FA49F) else Color.LightGray,
-                        contentColor = if (tipoUsuario == "Médico") Color.White else Color.DarkGray
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Médico", fontSize = 16.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // BOTÃO CADASTRAR
+            // Botão Cadastrar
             Button(
                 onClick = {
-
-                    // ESPECIALIDADES FINAIS
-                    val finais = selected.toMutableList()
-
-                    if (finais.contains("Outras")) {
-                        if (outraEspecialidade.isBlank()) {
-                            Toast.makeText(context, "Digite a outra especialidade.", Toast.LENGTH_LONG).show()
-                            return@Button
-                        }
-                        finais.remove("Outras")
-                        finais.add(outraEspecialidade.trim())
+                    if (
+                        nome.isBlank() ||
+                        crm.isBlank() ||
+                        email.isBlank() ||
+                        senha.isBlank() ||
+                        confirmarSenha.isBlank() ||
+                        selected.isEmpty() ||
+                        (selected.contains("Outras") && outraEspecialidade.isBlank())
+                    ) {
+                        Toast.makeText(context, "Preencha todos os campos obrigatórios.", Toast.LENGTH_LONG).show()
                     }
 
-                    // VALIDAÇÕES
-                    when {
-                        !nomeValido(nome) ->
-                            Toast.makeText(context, "Digite nome e sobrenome.", Toast.LENGTH_LONG).show()
 
-                        !crmValido(crm) ->
-                            Toast.makeText(context, "CRM inválido.", Toast.LENGTH_LONG).show()
 
-                        finais.isEmpty() ->
-                            Toast.makeText(context, "Escolha ao menos 1 especialidade.", Toast.LENGTH_LONG).show()
-
-                        !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
-                            Toast.makeText(context, "E-mail inválido.", Toast.LENGTH_LONG).show()
-
-                        !senhaForte(senha) ->
-                            Toast.makeText(context, "Senha fraca.", Toast.LENGTH_LONG).show()
-
-                        senha != confirmarSenha ->
-                            Toast.makeText(context, "Senhas não coincidem.", Toast.LENGTH_LONG).show()
-
-                        else -> registerDoctorAuth(
-                            email.trim(),
-                            senha,
-                            nome.trim(),
-                            crm.trim().uppercase(),
-                            finais,
-                            context
-                        )
-                    }
+                    registerDoctorAuth(
+                        email = email,
+                        password = senha,
+                        nome = nome,
+                        crm = crm,
+                        especialidade = selected,
+                        context = context
+                    )
                 },
+
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2FA49F),
                     contentColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                    shape = RoundedCornerShape(8.dp)
+                    .height(48.dp),
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Text("Cadastrar", fontSize = 18.sp)
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
-            // Link "Fazer login"
+            // Link Login
             Text(
                 text = "Fazer login",
                 color = Color(0xFF2FA49F),
                 fontSize = 18.sp,
                 modifier = Modifier.clickable {
-                    val intent = android.content.Intent(context, SignInActivity::class.java)
+                    val intent = Intent(context, SignInActivity::class.java)
                     context.startActivity(intent)
                 }
             )
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

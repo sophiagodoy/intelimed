@@ -19,7 +19,7 @@
       </SelectionState>
       <SelectionState runConfigName="PreviewSignUpDoctor">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-18T18:10:42.362354700Z">
+        <DropdownSelection timestamp="2025-11-18T18:31:21.259986800Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\sophi\.android\avd\Pixel_5_API_35.avd" />
