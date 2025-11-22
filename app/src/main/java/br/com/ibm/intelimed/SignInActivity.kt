@@ -119,7 +119,9 @@ fun autenticate(email: String, password: String, context: Context) {
 
                                 if (isFirst) {
                                     Toast.makeText(context, "Bem-vindo ao seu primeiro acesso!", Toast.LENGTH_LONG).show()
-                                    context.startActivity(Intent(context, TermsOfUseActivity::class.java))
+                                    val intent = Intent(context, TermsOfUseActivity::class.java)
+                                    intent.putExtra("tipoUsuario", "medico")
+                                    context.startActivity(intent)
                                     doc.reference.update("primeiroLogin", false)
                                 } else {
                                     Toast.makeText(context, "Bem-vindo, médico!", Toast.LENGTH_SHORT).show()
@@ -141,7 +143,9 @@ fun autenticate(email: String, password: String, context: Context) {
 
                                             if (isFirst) {
                                                 Toast.makeText(context, "Bem-vindo ao seu primeiro acesso!", Toast.LENGTH_LONG).show()
-                                                context.startActivity(Intent(context, TermsOfUseActivity::class.java))
+                                                val intent = Intent(context, TermsOfUseActivity::class.java)
+                                                intent.putExtra("tipoUsuario", "paciente")
+                                                context.startActivity(intent)
                                                 doc.reference.update("primeiroLogin", false)
                                             } else {
                                                 Toast.makeText(context, "Bem-vindo, paciente!", Toast.LENGTH_SHORT).show()

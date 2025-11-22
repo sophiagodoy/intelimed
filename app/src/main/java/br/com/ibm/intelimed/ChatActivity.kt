@@ -1,7 +1,7 @@
 package br.com.ibm.intelimed
 
-import androidx.activity.ComponentActivity
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,28 +10,71 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.TextFieldDefaults
+import br.com.ibm.intelimed.network.Cliente
+import br.com.ibm.intelimed.network.PedidoMensagem
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+data class Mensagem(
+    val text: String,
+    val senderId: String
+)
 
 class ChatActivity : ComponentActivity() {
+
+    private val cliente = Cliente()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val uidAtual = intent.getStringExtra("uidAtual") ?: ""
+        val uidOutro = intent.getStringExtra("uidOutro") ?: ""
+        val nomeOutro = intent.getStringExtra("nomeOutro") ?: "Chat"
+        val mensagens = mutableStateListOf<Mensagem>()
+
+        // Conecta ao servidor em background
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                cliente.conectarServidor("10.0.2.2", 3000, uidAtual)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // Define listener para receber mensagens do servidor
+        cliente.setListener { pedido ->
+            val msg = Mensagem(
+                text = pedido.getConteudo(),
+                senderId = pedido.getUidRemetente()
+            )
+            runOnUiThread {
+                mensagens.add(msg)
+            }
+        }
+
         setContent {
             IntelimedTheme {
-                ChatScreen()
+                ChatScreen(
+                    uidAtual = uidAtual,
+                    uidOutro = uidOutro,
+                    nomeOutro = nomeOutro,
+                    cliente = cliente,
+                    mensagens = mensagens
+                )
             }
         }
     }
@@ -39,36 +82,73 @@ class ChatActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen() {
+fun ChatScreen(
+    uidAtual: String,
+    uidOutro: String,
+    nomeOutro: String,
+    cliente: Cliente,
+    mensagens: SnapshotStateList<Mensagem>
+) {
     val teal = Color(0xFF007C7A)
-    val msgBg = Color(0xFFF7FDFC)
+    var mensagemDigitada by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("INTELIMED", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Chat", color = Color.White.copy(0.9f), fontSize = 14.sp)
+                        Text(
+                            nomeOutro,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Chat",
+                            color = Color.White.copy(0.8f),
+                            fontSize = 14.sp
+                        )
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* voltar */ }) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Voltar", tint = Color.White)
+                    IconButton(onClick = { (context as? ComponentActivity)?.finish() }) {
+                        Icon(
+                            Icons.Filled.ArrowBackIosNew,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = teal)
             )
         },
         bottomBar = {
-            ChatInputBar()
+            ChatInputBar(
+                mensagem = mensagemDigitada,
+                onChange = { mensagemDigitada = it },
+                onSend = {
+                    if (mensagemDigitada.isNotBlank()) {
+                        // Envia ao servidor em background
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                cliente.enviarMensagem(mensagemDigitada, uidOutro)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+
+                        // Adiciona localmente
+                        mensagens.add(Mensagem(text = mensagemDigitada, senderId = uidAtual))
+                        mensagemDigitada = ""
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color.White)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -77,15 +157,11 @@ fun ChatScreen() {
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                val mensagens = listOf(
-                    Mensagem("Olá, doutor!", true),
-                    Mensagem("Olá, Ryan! Como está se sentindo hoje?", false),
-                    Mensagem("Melhor, mas ainda com dor de cabeça.", true),
-                    Mensagem("Entendido. Mantenha o repouso e continue a medicação prescrita.", false)
-                )
-
                 items(mensagens) { msg ->
-                    MensagemBubble(msg.texto, msg.enviadaPeloUsuario)
+                    MensagemBubble(
+                        texto = msg.text,
+                        enviadaPeloUsuario = msg.senderId == uidAtual
+                    )
                 }
             }
         }
@@ -93,7 +169,11 @@ fun ChatScreen() {
 }
 
 @Composable
-fun ChatInputBar() {
+fun ChatInputBar(
+    mensagem: String,
+    onChange: (String) -> Unit,
+    onSend: () -> Unit
+) {
     val teal = Color(0xFF007C7A)
 
     Row(
@@ -103,13 +183,9 @@ fun ChatInputBar() {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(onClick = { /* abrir câmera */ }) {
-            Icon(Icons.Default.CameraAlt, contentDescription = "Abrir câmera", tint = teal)
-        }
-
         TextField(
-            value = "",
-            onValueChange = {},
+            value = mensagem,
+            onValueChange = onChange,
             placeholder = { Text("Enviar mensagem") },
             modifier = Modifier
                 .weight(1f)
@@ -118,22 +194,24 @@ fun ChatInputBar() {
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color(0xFFF7FDFC),
                 unfocusedContainerColor = Color(0xFFF7FDFC),
-                disabledContainerColor = Color(0xFFF7FDFC),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
             )
         )
 
         Spacer(modifier = Modifier.width(8.dp))
 
         IconButton(
-            onClick = { /* enviar áudio */ },
+            onClick = onSend,
             modifier = Modifier
                 .size(45.dp)
                 .background(teal, CircleShape)
         ) {
-            Icon(Icons.Default.Mic, contentDescription = "Gravar áudio", tint = Color.White)
+            Icon(
+                Icons.Default.Send,
+                contentDescription = "Enviar",
+                tint = Color.White
+            )
         }
     }
 }
@@ -156,15 +234,5 @@ fun MensagemBubble(texto: String, enviadaPeloUsuario: Boolean) {
         ) {
             Text(texto, color = textoCor, fontSize = 16.sp)
         }
-    }
-}
-
-data class Mensagem(val texto: String, val enviadaPeloUsuario: Boolean)
-
-@Preview
-@Composable
-fun ChatPacientePreview() {
-    IntelimedTheme {
-        ChatScreen()
     }
 }

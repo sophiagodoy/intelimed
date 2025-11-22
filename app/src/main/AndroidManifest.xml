@@ -128,6 +128,13 @@
             android:label="Chat"
             android:theme="@style/Theme.Intelimed" />
 
+        <!-- Tela que lista chats -->
+        <activity
+            android:name=".AcceptedChatsActivity"
+            android:exported="false"
+            android:label="Lista de chat"
+            android:theme="@style/Theme.Intelimed" />
+
         <!-- Selecionar Médico -->
         <activity
             android:name=".SelectDoctorActivity"

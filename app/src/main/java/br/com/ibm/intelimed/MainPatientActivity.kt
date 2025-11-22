@@ -135,8 +135,10 @@ fun PatientHome() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 OptionCard("Chat", Icons.AutoMirrored.Filled.Chat) {
-                    val intent = Intent(context, ChatActivity::class.java)
-                    context.startActivity(intent)
+                    context.startActivity(
+                        Intent(context, AcceptedChatsActivity::class.java)
+                            .putExtra("isMedico", false)
+                    )
                 }
                 OptionCard("Escolher Médico", Icons.Default.Description) {
                     val intent = Intent(context, SelectDoctorActivity::class.java)

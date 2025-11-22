@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,7 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,10 +27,11 @@ import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 
 class TermsOfUseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val tipoUsuario = intent.getStringExtra("tipoUsuario")
         super.onCreate(savedInstanceState)
         setContent {
             IntelimedTheme {
-                TermsOfUse()
+                TermsOfUse(tipoUsuario)
             }
         }
     }
@@ -35,7 +39,7 @@ class TermsOfUseActivity : ComponentActivity() {
 
 // Composable principal da tela
 @Composable
-fun TermsOfUse(modifier: Modifier = Modifier) {
+fun TermsOfUse(tipoUsuario: String?, modifier: Modifier = Modifier) {
 
     var aceitoTermos by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -47,8 +51,14 @@ fun TermsOfUse(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-
-        // TODO: LOGO DO APP (Aguardando Guilherme)
+        Image(
+            painter = painterResource(id = R.drawable.ic_logo_intelimed),
+            contentDescription = "Logo Intelimed",
+            modifier = Modifier
+                .size(260.dp)
+                .padding(bottom = 4.dp),
+            contentScale = ContentScale.Fit
+        )
         Text(
             text = "INTELIMED",
             fontSize = 28.sp,
@@ -115,8 +125,11 @@ fun TermsOfUse(modifier: Modifier = Modifier) {
             Button(
                 onClick = {
                     Toast.makeText(context, "Bem-vindo", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(context, MainPatientActivity::class.java)
-                    context.startActivity(intent)
+                    if (tipoUsuario == "medico") {
+                        context.startActivity(Intent(context, MainDoctorActivity::class.java))
+                    } else {
+                        context.startActivity(Intent(context, MainPatientActivity::class.java))
+                    }
                 },
                 enabled = aceitoTermos,
                 colors = ButtonDefaults.buttonColors(
@@ -141,7 +154,9 @@ fun TermsOfUse(modifier: Modifier = Modifier) {
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.clickable {
-                    context.startActivity(Intent(context, TermsFullActivity::class.java))
+                    val intent = Intent(context, TermsFullActivity::class.java)
+                    intent.putExtra("tipoUsuario", tipoUsuario)
+                    context.startActivity(intent)
                 }
             )
         }
@@ -152,6 +167,6 @@ fun TermsOfUse(modifier: Modifier = Modifier) {
 @Composable
 fun TermsOfUsePreview() {
     IntelimedTheme {
-        TermsOfUse()
+        TermsOfUse("medico")
     }
 }

@@ -25,16 +25,17 @@ import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 class TermsFullActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val tipoUsuario = intent.getStringExtra("tipoUsuario")
         setContent {
             IntelimedTheme {
-                TermsFullScreen()
+                TermsFullScreen(tipoUsuario)
             }
         }
     }
 }
 
 @Composable
-fun TermsFullScreen() {
+fun TermsFullScreen(tipoUsuario: String?) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
@@ -115,8 +116,11 @@ fun TermsFullScreen() {
             Button(
                 onClick = {
                     Toast.makeText(context, "Bem-vindo", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(context, MainPatientActivity::class.java)
-                    context.startActivity(intent)
+                    if (tipoUsuario == "medico") {
+                        context.startActivity(Intent(context, MainDoctorActivity::class.java))
+                    } else {
+                        context.startActivity(Intent(context, MainPatientActivity::class.java))
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2FA49F),
@@ -137,6 +141,6 @@ fun TermsFullScreen() {
 @Composable
 fun TermsFullPreview() {
     IntelimedTheme {
-        TermsFullScreen()
+        TermsFullScreen(tipoUsuario = "medico")
     }
 }

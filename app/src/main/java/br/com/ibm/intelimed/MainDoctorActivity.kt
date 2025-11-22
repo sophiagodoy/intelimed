@@ -111,8 +111,10 @@ fun DoctorHome() {
                     context.startActivity(intent)
                 }
                 OptionCard("Chat", Icons.AutoMirrored.Filled.Chat) {
-                    val intent = Intent(context, ChatActivity::class.java)
-                    context.startActivity(intent)
+                    context.startActivity(
+                        Intent(context, AcceptedChatsActivity::class.java)
+                            .putExtra("isMedico", true)
+                    )
                 }
             }
 
