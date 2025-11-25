@@ -1,4 +1,6 @@
-// TELA DA LISTA DE PACIENTES PARA O MÉDICO
+/**
+ * Tela de lista de pacientes do médico e solicitações
+ */
 
 package br.com.ibm.intelimed
 
@@ -6,14 +8,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,13 +34,14 @@ class PatientListActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             IntelimedTheme {
-                PatientList()
+                PatientList(onBack = { finish() })
             }
         }
     }
 }
 
-// Modelo de dados
+// ---------------------- MODELOS ----------------------
+
 data class Paciente(
     val nome: String = "",
     val email: String = ""
@@ -52,17 +55,15 @@ data class Solicitacao(
     val status: String = ""
 )
 
-fun listenAcceptedPatients(
-    medicoId: String,
-    onResult: (List<Paciente>) -> Unit
-) {
+// ---------------------- FIREBASE ----------------------
+
+fun listenAcceptedPatients(medicoId: String, onResult: (List<Paciente>) -> Unit) {
     val db = Firebase.firestore
 
     db.collection("solicitacoes")
         .whereEqualTo("medicoId", medicoId)
         .whereEqualTo("status", "aceito")
         .addSnapshotListener { task, _ ->
-
             if (task == null || task.isEmpty) {
                 onResult(emptyList())
                 return@addSnapshotListener
@@ -75,11 +76,8 @@ fun listenAcceptedPatients(
 
                 val pacienteId = solicitacao.getString("pacienteId") ?: ""
 
-                db.collection("paciente")
-                    .document(pacienteId)
-                    .get()
+                db.collection("paciente").document(pacienteId).get()
                     .addOnSuccessListener { paciente ->
-
                         lista.add(
                             Paciente(
                                 nome = paciente.getString("nome") ?: "",
@@ -88,116 +86,13 @@ fun listenAcceptedPatients(
                         )
 
                         contador--
-                        if (contador == 0) {
-                            onResult(lista)
-                        }
+                        if (contador == 0) onResult(lista)
                     }
             }
         }
 }
 
-@Composable
-fun PatientList() {
-        var abaSelecionada by remember { mutableStateOf(0) } // 0 = Aceitos, 1 = Solicitações
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(24.dp)
-        ) {
-
-            // TABS
-            TabRow(selectedTabIndex = abaSelecionada) {
-
-                Tab(
-                    selected = abaSelecionada == 0,
-                    onClick = { abaSelecionada = 0 },
-                    text = { Text("Pacientes") }
-                )
-
-                Tab(
-                    selected = abaSelecionada == 1,
-                    onClick = { abaSelecionada = 1 },
-                    text = { Text("Solicitações") }
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            when (abaSelecionada) {
-                0 -> ListaPacientesAceitos()
-                1 -> ListaSolicitacoesPendentes()
-            }
-        }
-}
-@Composable
-fun ListaPacientesAceitos() {
-    val medicoId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-    var pacientes by remember { mutableStateOf<List<Paciente>>(emptyList()) }
-    var carregando by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        listenAcceptedPatients(medicoId) { lista ->
-            pacientes = lista
-            carregando = false
-        }
-    }
-
-    when {
-        carregando -> CircularProgressIndicator(color = Color(0xFF2FA49F))
-
-        pacientes.isEmpty() ->
-            Text("Nenhum paciente aceito ainda.", color = Color.Gray)
-
-        else -> LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(pacientes) { paciente ->
-                PacienteCardModern(paciente)
-            }
-        }
-    }
-}
-
-@Composable
-fun ListaSolicitacoesPendentes() {
-    val medicoId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-    var solicitacoes by remember { mutableStateOf<List<Solicitacao>>(emptyList()) }
-    var carregando by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        listenSolicitacoesPendentes(medicoId) { lista ->
-            solicitacoes = lista
-            carregando = false
-        }
-    }
-
-    when {
-        carregando -> CircularProgressIndicator(color = Color(0xFF2FA49F))
-
-        solicitacoes.isEmpty() ->
-            Text("Nenhuma solicitação pendente.", color = Color.Gray)
-
-        else -> LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            items(solicitacoes) { solicitacao ->
-                CardSolicitacao(solicitacao)
-            }
-        }
-    }
-}
-
-
-fun listenSolicitacoesPendentes(
-    medicoId: String,
-    onResult: (List<Solicitacao>) -> Unit
-) {
+fun listenSolicitacoesPendentes(medicoId: String, onResult: (List<Solicitacao>) -> Unit) {
     val db = Firebase.firestore
 
     db.collection("solicitacoes")
@@ -217,9 +112,7 @@ fun listenSolicitacoesPendentes(
 
                 val pacienteId = doc.getString("pacienteId") ?: ""
 
-                db.collection("paciente")
-                    .document(pacienteId)
-                    .get()
+                db.collection("paciente").document(pacienteId).get()
                     .addOnSuccessListener { paciente ->
 
                         lista.add(
@@ -233,9 +126,7 @@ fun listenSolicitacoesPendentes(
                         )
 
                         contador--
-                        if (contador == 0) {
-                            onResult(lista)
-                        }
+                        if (contador == 0) onResult(lista)
                     }
             }
         }
@@ -253,21 +144,187 @@ fun recusarSolicitacao(solicitacaoId: String) {
         .update("status", "recusado")
 }
 
+// ---------------------- TELA PRINCIPAL ----------------------
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PatientList(onBack: (() -> Unit)? = null) {
+
+    val teal = Color(0xFF007C7A)
+    var abaSelecionada by remember { mutableStateOf(0) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { onBack?.invoke() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
+                    }
+                },
+                title = {
+                    Text(
+                        "Meus Pacientes",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = teal)
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(24.dp)
+        ) {
+
+            // -------- ABAS PERSONALIZADAS --------
+            TabRow(
+                selectedTabIndex = abaSelecionada,
+                containerColor = Color.White,
+                contentColor = teal,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        Modifier.tabIndicatorOffset(tabPositions[abaSelecionada]),
+                        color = teal
+                    )
+                }
+            ) {
+
+                Tab(
+                    selected = abaSelecionada == 0,
+                    onClick = { abaSelecionada = 0 },
+                    text = {
+                        Text(
+                            "Pacientes",
+                            fontWeight = FontWeight.Bold,
+                            color = if (abaSelecionada == 0) teal else Color.Gray
+                        )
+                    }
+                )
+
+                Tab(
+                    selected = abaSelecionada == 1,
+                    onClick = { abaSelecionada = 1 },
+                    text = {
+                        Text(
+                            "Solicitações",
+                            fontWeight = FontWeight.Bold,
+                            color = if (abaSelecionada == 1) teal else Color.Gray
+                        )
+                    }
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            when (abaSelecionada) {
+                0 -> ListaPacientesAceitos()
+                1 -> ListaSolicitacoesPendentes()
+            }
+        }
+    }
+}
+
+// ---------------------- LISTA PACIENTES ----------------------
+
+@Composable
+fun ListaPacientesAceitos() {
+    val medicoId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+    var pacientes by remember { mutableStateOf<List<Paciente>>(emptyList()) }
+    var carregando by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        listenAcceptedPatients(medicoId) { lista ->
+            pacientes = lista
+            carregando = false
+        }
+    }
+
+    when {
+        carregando -> CircularProgressIndicator(color = Color(0xFF007C7A))
+
+        pacientes.isEmpty() ->
+            Text("Nenhum paciente aceito ainda.", color = Color.Gray)
+
+        else -> LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(pacientes) { paciente ->
+                PacienteCardModern(paciente)
+            }
+        }
+    }
+}
+
+// ---------------------- LISTA SOLICITAÇÕES ----------------------
+
+@Composable
+fun ListaSolicitacoesPendentes() {
+    val medicoId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+    var solicitacoes by remember { mutableStateOf<List<Solicitacao>>(emptyList()) }
+    var carregando by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        listenSolicitacoesPendentes(medicoId) { lista ->
+            solicitacoes = lista
+            carregando = false
+        }
+    }
+
+    when {
+        carregando -> CircularProgressIndicator(color = Color(0xFF007C7A))
+
+        solicitacoes.isEmpty() ->
+            Text("Nenhuma solicitação pendente.", color = Color.Gray)
+
+        else -> LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(solicitacoes) { solicitacao ->
+                CardSolicitacao(solicitacao)
+            }
+        }
+    }
+}
+
+// ---------------------- CARD SOLICITAÇÃO ----------------------
+
 @Composable
 fun CardSolicitacao(solicitacao: Solicitacao) {
 
     Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7FDFC)),
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
 
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(18.dp)) {
 
-            Text(solicitacao.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Text(solicitacao.email, color = Color.Gray)
+            Column {
+                Text(
+                    solicitacao.nome,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF007C7A)
+                )
+                Text(solicitacao.email, color = Color.Gray)
+            }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -275,14 +332,16 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
             ) {
                 Button(
                     onClick = { aceitarSolicitacao(solicitacao.solicitacaoId) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2FA49F))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007C7A)),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Aceitar")
                 }
 
                 Button(
                     onClick = { recusarSolicitacao(solicitacao.solicitacaoId) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Recusar", color = Color.White)
                 }
@@ -291,29 +350,28 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
     }
 }
 
+// ---------------------- CARD PACIENTE ----------------------
+
 @Composable
 fun PacienteCardModern(paciente: Paciente) {
     Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF7FDFC)),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* TODO: MUDAR PARA A TELA QUE APARECE OS SINTOMAS DO PACIENTE */ }
-            .padding(horizontal = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(vertical = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(
                     text = paciente.nome,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF2FA49F)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF007C7A)
                 )
                 Text(
                     text = paciente.email,
@@ -321,14 +379,10 @@ fun PacienteCardModern(paciente: Paciente) {
                     color = Color.Gray
                 )
             }
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = null,
-                tint = Color(0xFF2FA49F)
-            )
         }
     }
 }
+
 @Preview
 @Composable
 fun PatientListPreview() {
@@ -336,4 +390,3 @@ fun PatientListPreview() {
         PatientList()
     }
 }
-
