@@ -54,15 +54,6 @@ fun DoctorHome() {
             TopAppBar(
                 title = { Text("INTELIMED", color = Color.White, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = teal),
-                actions = {
-                    IconButton(onClick = { /* Notificações */ }) {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
-                }
             )
         },
         bottomBar = {

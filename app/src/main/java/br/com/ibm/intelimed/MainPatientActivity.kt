@@ -83,11 +83,6 @@ fun PatientHome() {
             TopAppBar(
                 title = { Text("INTELIMED", color = Color.White, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = teal),
-                actions = {
-                    IconButton(onClick = { /* Notificações */ }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notificações", tint = Color.White)
-                    }
-                }
             )
         },
         bottomBar = {
@@ -99,7 +94,6 @@ fun PatientHome() {
                     label = { Text("Início") }
                 )
 
-                // Ícone de saída no lugar do perfil
                 NavigationBarItem(
                     selected = false,
                     onClick = { mostrarDialogoSair = true },
@@ -117,19 +111,21 @@ fun PatientHome() {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+
             Text(
                 text = "Home",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+
             Text(
                 text = "Olá, $nome",
                 fontSize = 18.sp,
                 color = Color.DarkGray
             )
 
-            // Cards de opções
+            // ---- CARDS ----
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -140,6 +136,7 @@ fun PatientHome() {
                             .putExtra("isMedico", false)
                     )
                 }
+
                 OptionCard("Escolher Médico", Icons.Default.Description) {
                     val intent = Intent(context, SelectDoctorActivity::class.java)
                     context.startActivity(intent)
@@ -154,11 +151,15 @@ fun PatientHome() {
                     val intent = Intent(context, MedicalGuidanceActivity::class.java)
                     context.startActivity(intent)
                 }
-                OptionCard("Feedback Médico", Icons.Default.Warning) { /* abrir feedback */ }
+
+                OptionCard("Feedback Médico", Icons.Default.Warning) {
+                    // abrir feedback
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // ---- BOTÃO DE REGISTRAR SINTOMAS ----
             Button(
                 onClick = { val intent = Intent(context, SymptomLogActivity::class.java)
                     context.startActivity(intent) },
@@ -171,23 +172,10 @@ fun PatientHome() {
                 Text("Registrar sintomas hoje", color = Color.White, fontSize = 16.sp)
             }
 
-            Button(
-                onClick = {
-                    val intent = Intent(context, MedicalGuidanceActivity::class.java)
-                    context.startActivity(intent)
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                border = ButtonDefaults.outlinedButtonBorder,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Text("Ver orientações médicas", color = teal, fontSize = 16.sp)
-            }
-        }
+        } // <-- FECHAMENTO DO COLUMN AQUI ✔️
 
-        // Diálogo de confirmação de saída
+
+        // ---- DIÁLOGO DE SAIR ----
         if (mostrarDialogoSair) {
             AlertDialog(
                 onDismissRequest = { mostrarDialogoSair = false },
