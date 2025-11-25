@@ -470,9 +470,6 @@ fun getEspecialidades(
         }
 }
 
-
-
-
 @Composable
 fun PerguntaSimNao(
     pergunta: String,

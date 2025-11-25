@@ -80,7 +80,7 @@ fun ReportsScreen() {
     val reports = remember { mutableStateListOf<Report>() }
 
     // Guarda o filtro atualmente selecionado (Todos, Com, ou Sem feedback)
-    var selectedFilter by remember { mutableStateOf("Todos") }
+    var selectedFilter by remember { mutableStateOf("Não respondidos") }
 
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
@@ -113,8 +113,8 @@ fun ReportsScreen() {
 
     // Aplica o filtro conforme a opção escolhida pelo usuário
     val filteredReports = when (selectedFilter) {
-        "Com" -> reports.filter { it.feedback.isNotEmpty() }
-        "Sem" -> reports.filter { it.feedback.isEmpty() }
+        "Respondidos" -> reports.filter { it.feedback.isNotEmpty() }
+        "Não respondidos" -> reports.filter { it.feedback.isEmpty() }
         else -> reports
     }
 
@@ -198,7 +198,7 @@ fun FilterRow(selected: String, onSelect: (String) -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        val filters = listOf("Todos", "Com", "Sem")
+        val filters = listOf("Não respondidos", "Respondidos")
 
         filters.forEach { option ->
             val isSelected = selected == option
