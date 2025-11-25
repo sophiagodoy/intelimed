@@ -153,7 +153,8 @@ fun PatientHome() {
                 }
 
                 OptionCard("Feedback Médico", Icons.Default.Warning) {
-                    // abrir feedback
+                    val intent = Intent(context, DoctorFeedbackActivity::class.java)
+                    context.startActivity(intent)
                 }
             }
 

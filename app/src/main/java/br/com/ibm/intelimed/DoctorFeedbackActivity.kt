@@ -1,27 +1,45 @@
 // TELA PARA O PACIENTE LER O FEEDBACK DO MÉDICO
 package br.com.ibm.intelimed
 
+import android.app.Activity
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 
+class DoctorFeedbackActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            IntelimedTheme {
+                DoctorFeedbackScreen()
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DoctorFeedback() {
-
+fun DoctorFeedbackScreen() {
     val teal = Color(0xFF007C7A)
     val scrollState = rememberScrollState()
+    val context = LocalContext.current   // 👈 usa o context daqui
 
-    // Aqui você vai puxar do Firestore futuramente
+    // (depois você puxa do Firestore)
     val nomeMedico = "Dr. João"
     val respostaMedico =
         "Olá Maria, observei seus sintomas e recomendo repouso hoje. " +
@@ -33,10 +51,22 @@ fun DoctorFeedback() {
             TopAppBar(
                 title = {
                     Text(
-                        "Resposta do Médico",
+                        "Resposta do médico",
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        // fecha só essa tela
+                        (context as? Activity)?.finish()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = teal)
             )
@@ -83,6 +113,6 @@ fun DoctorFeedback() {
 @Composable
 fun DoctorFeedbackPreview() {
     IntelimedTheme {
-        DoctorFeedback()
+        DoctorFeedbackScreen()
     }
 }
