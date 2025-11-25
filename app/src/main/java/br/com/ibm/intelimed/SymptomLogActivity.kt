@@ -189,27 +189,6 @@ fun RegistroSintomas() {
 
     var observacoes by remember { mutableStateOf(TextFieldValue("")) }
 
-    // ===== Estados para especialidades =====
-    var expanded by remember { mutableStateOf(false) }
-    var selectedEspecialidade by remember { mutableStateOf("") }
-    var especialidades by remember { mutableStateOf(listOf<String>()) }
-    var carregando by remember { mutableStateOf(true) }
-    var erroFirebase by remember { mutableStateOf("") }
-
-    // Quando a tela abrir, busca as especialidades do Firestore
-    LaunchedEffect(Unit) {
-        getEspecialidades(
-            onSucesso = { lista ->
-                especialidades = lista
-                carregando = false
-            },
-            onErro = { erro ->
-                erroFirebase = "Erro ao carregar: ${erro.message}"
-                carregando = false
-            }
-        )
-    }
-
     // ===== Layout =====
     Scaffold(
         topBar = {
@@ -248,58 +227,6 @@ fun RegistroSintomas() {
                 fontWeight = FontWeight.Bold
             )
 
-            // 🔹 Dropdown de especialidades
-            if (carregando) {
-                CircularProgressIndicator(
-                    color = Color(0xFF007C7A),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            } else if (erroFirebase.isNotEmpty()) {
-                Text(
-                    text = erroFirebase,
-                    color = Color.Red,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-            } else {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
-                        value = selectedEspecialidade,
-                        onValueChange = {},
-                        label = { Text("Selecione a especialidade") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { expanded = true },
-                        readOnly = true,
-                        trailingIcon = {
-                            IconButton(onClick = { expanded = !expanded }) {
-                                Icon(
-                                    imageVector = if (expanded)
-                                        Icons.Default.KeyboardArrowUp
-                                    else
-                                        Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    )
-
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        especialidades.forEach { especialidade ->
-                            DropdownMenuItem(
-                                text = { Text(especialidade) },
-                                onClick = {
-                                    selectedEspecialidade = especialidade
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
 
             // ===== Campo Sentimento =====
             OutlinedTextField(

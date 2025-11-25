@@ -160,7 +160,8 @@ fun PatientHome() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { /* registrar sintomas */ },
+                onClick = { val intent = Intent(context, SymptomLogActivity::class.java)
+                    context.startActivity(intent) },
                 colors = ButtonDefaults.buttonColors(containerColor = teal),
                 modifier = Modifier
                     .fillMaxWidth()
