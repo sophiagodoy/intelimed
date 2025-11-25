@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
+import com.google.ai.client.generativeai.Chat
 import com.google.firebase.auth.FirebaseAuth
 
 class MainDoctorActivity : ComponentActivity() {
@@ -122,7 +123,9 @@ fun DoctorHome() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                OptionCard("Feedbacks", Icons.Default.ThumbUp) { /* abrir feedbacks */ }
+                OptionCard("Feedbacks", Icons.Default.ThumbUp) {
+                    val intent = Intent(context, ReportsActivity::class.java)
+                    context.startActivity(intent) }
                 OptionCard("Encaminhamentos", Icons.AutoMirrored.Filled.ArrowForward) { /* abrir encaminhamentos */ }
             }
 
