@@ -27,12 +27,16 @@ import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistroSintomas() {
 
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     // ===== Estados do formulário =====
     var sentimento by remember { mutableStateOf(TextFieldValue("")) }
@@ -74,9 +78,24 @@ fun RegistroSintomas() {
                         textAlign = TextAlign.Center
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        val intent = Intent(context, MainPatientActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(intent)
+                        (context as? android.app.Activity)?.finish()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF007C7A),
-                    titleContentColor = Color.White
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
                 )
             )
         }
@@ -88,17 +107,22 @@ fun RegistroSintomas() {
                 .padding(20.dp)
                 .fillMaxSize()
                 .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(22.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp) // era 22.dp
         ) {
 
-            // ===================== DADOS GERAIS =====================
+            Text(
+                text = "As respostas desse registro serão enviadas ao médico que você escolheu para te acompanhar.",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
             Text(
                 text = "DADOS GERAIS",
                 color = Color(0xFF007C7A),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
-
 
             // ===== Campo Sentimento =====
             OutlinedTextField(
