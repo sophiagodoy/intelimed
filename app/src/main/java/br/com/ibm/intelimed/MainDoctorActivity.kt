@@ -116,8 +116,13 @@ fun DoctorHome() {
             ) {
                 OptionCard("Feedbacks", Icons.Default.ThumbUp) {
                     val intent = Intent(context, ReportsActivity::class.java)
-                    context.startActivity(intent) }
-                OptionCard("Encaminhamentos", Icons.AutoMirrored.Filled.ArrowForward) { /* abrir encaminhamentos */ }
+                    context.startActivity(intent)
+                }
+
+                OptionCard("Guia de Atendimento", Icons.Default.MenuBook) {
+                    val intent = Intent(context, DoctorInstructionsActivity::class.java)
+                    context.startActivity(intent)
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -150,7 +155,7 @@ fun DoctorHome() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun DoctorHomePreview() {
     IntelimedTheme {
