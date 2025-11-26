@@ -23,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.ibm.intelimed.network.Cliente
-import br.com.ibm.intelimed.network.PedidoMensagem
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

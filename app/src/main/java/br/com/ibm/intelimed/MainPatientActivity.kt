@@ -1,3 +1,6 @@
+/**
+ * Tela principal do paciente
+ */
 package br.com.ibm.intelimed
 
 import android.content.Intent

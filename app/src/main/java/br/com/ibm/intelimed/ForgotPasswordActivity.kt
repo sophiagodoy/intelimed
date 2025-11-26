@@ -1,3 +1,6 @@
+/**
+ * Tela de esqueceu senha
+ */
 package br.com.ibm.intelimed
 
 import android.os.Bundle
@@ -173,11 +176,7 @@ fun sendPasswordResetEmail(email: String, context: android.content.Context) {
     auth.sendPasswordResetEmail(email)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                Toast.makeText(
-                    context,
-                    "Um link de redefinição foi enviado para $email",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(context, "Um link de redefinição foi enviado para $email", Toast.LENGTH_LONG).show()
             } else {
                 val errorMessage = task.exception?.message ?: "Erro ao enviar e-mail."
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()

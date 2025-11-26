@@ -25,9 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Activity principal responsável pela tela de Onboarding.
- */
 class OnBoardingActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,9 +43,6 @@ private val Teal = Color(0xFF2F7D7D)
 private val CardBg = Color(0xFFFFFFFF)
 private val LightTeal = Color(0xFFB5D8D8)
 
-/**
- * Tela principal do Onboarding.
- */
 @Composable
 fun OnBoardingScreen() {
     Column(

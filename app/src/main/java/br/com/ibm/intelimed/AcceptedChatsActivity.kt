@@ -56,14 +56,12 @@ fun AcceptedChatsScreen(
     LaunchedEffect(userId, isMedico) {
 
         if (userId == null) {
-            // sem usuário logado → nada pra listar
             listaPacientes = emptyList()
             loading = false
         } else {
             loading = true
 
             if (isMedico) {
-                // MÉDICO → listar pacientes aceitos
                 db.collection("solicitacoes")
                     .whereEqualTo("medicoId", userId)
                     .whereEqualTo("status", "aceito")
@@ -102,7 +100,6 @@ fun AcceptedChatsScreen(
                                                 }
                                             }
                                     } else {
-                                        // se pacienteId for nulo, só ignora esse doc
                                         loaded++
                                         if (loaded == solicitacoes.size) {
                                             listaPacientes = temp
@@ -115,7 +112,6 @@ fun AcceptedChatsScreen(
                     }
 
             } else {
-                // PACIENTE → listar médicos aceitos
                 db.collection("solicitacoes")
                     .whereEqualTo("pacienteId", userId)
                     .whereEqualTo("status", "aceito")
@@ -154,7 +150,6 @@ fun AcceptedChatsScreen(
                                                 }
                                             }
                                     } else {
-                                        // se medicoId for nulo, só ignora esse doc
                                         loaded++
                                         if (loaded == solicitacoes.size) {
                                             listaPacientes = temp

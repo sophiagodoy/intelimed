@@ -88,10 +88,7 @@ fun MedicalGuidelinesScreen() {
                 fontSize = 20.sp
             )
 
-            // ============================
             // CARD: Interpretação dos sintomas
-            // ============================
-
             Text(
                 "Interpretação dos sintomas",
                 fontWeight = FontWeight.Bold,
@@ -113,10 +110,7 @@ fun MedicalGuidelinesScreen() {
                 }
             }
 
-            // ============================
             // CARD: Comunicação com clareza
-            // ============================
-
             Text(
                 "Comunicação clara",
                 fontWeight = FontWeight.Bold,
@@ -138,10 +132,7 @@ fun MedicalGuidelinesScreen() {
                 }
             }
 
-            // ============================
             // CARD: Feedback útil
-            // ============================
-
             Text(
                 "Como escrever um bom feedback",
                 fontWeight = FontWeight.Bold,
@@ -167,10 +158,7 @@ fun MedicalGuidelinesScreen() {
                 }
             }
 
-            // ============================
             // CARD: Quando orientar busca de atendimento
-            // ============================
-
             Text(
                 "Quando orientar atendimento presencial",
                 fontWeight = FontWeight.Bold,

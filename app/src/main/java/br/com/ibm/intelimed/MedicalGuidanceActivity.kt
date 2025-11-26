@@ -1,4 +1,6 @@
-// ORIENTAÇÕES MÉDICAS PARA OS PACIENTES
+/**
+ * Orientações médicas para o paciente
+ */
 
 package br.com.ibm.intelimed
 

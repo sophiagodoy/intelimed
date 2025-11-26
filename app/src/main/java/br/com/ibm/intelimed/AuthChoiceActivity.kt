@@ -1,3 +1,6 @@
+/**
+ * Tela para escolher entre cadastro e login 
+ */
 package br.com.ibm.intelimed
 
 import android.os.Bundle

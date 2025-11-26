@@ -1,3 +1,6 @@
+/**
+ * Tela principal do médico
+ */
 package br.com.ibm.intelimed
 
 import android.content.Intent
@@ -7,7 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
@@ -21,7 +23,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
-import com.google.ai.client.generativeai.Chat
 import com.google.firebase.auth.FirebaseAuth
 
 class MainDoctorActivity : ComponentActivity() {
@@ -39,10 +40,12 @@ class MainDoctorActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DoctorHome() {
+
     val teal = Color(0xFF007C7A)
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
     var nome by remember { mutableStateOf("Usuário") }
+
     LaunchedEffect(Unit) {
         buscarNomeUsuario { resultado ->
             nome = resultado
