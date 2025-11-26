@@ -291,7 +291,7 @@ fun ListaSolicitacoesPendentes() {
 
         else -> LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
+            contentPadding = PaddingValues(bottom = 24.dp),
         ) {
             items(solicitacoes) { solicitacao ->
                 CardSolicitacao(solicitacao)
@@ -308,12 +308,19 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),           // <-- espaço fora do card
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
-        Column(Modifier.padding(18.dp)) {
-
+        Column(
+            Modifier.padding(
+                start = 18.dp,
+                top = 18.dp,
+                end = 18.dp,
+                bottom = 24.dp                   // <-- mais espaço embaixo dos botões
+            )
+        ) {
             Column {
                 Text(
                     solicitacao.nome,
@@ -349,6 +356,7 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
         }
     }
 }
+
 
 // ---------------------- CARD PACIENTE ----------------------
 
