@@ -76,8 +76,7 @@ fun RegistroSintomas() {
                         "Registro de Sintomas",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+
                     )
                 },
                 navigationIcon = {
