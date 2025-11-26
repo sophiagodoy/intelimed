@@ -40,8 +40,6 @@ class PatientListActivity : ComponentActivity() {
     }
 }
 
-// ---------------------- MODELOS ----------------------
-
 data class Paciente(
     val nome: String = "",
     val email: String = ""
@@ -55,8 +53,6 @@ data class Solicitacao(
     val status: String = ""
 )
 
-// ---------------------- FIREBASE ----------------------
-
 fun listenAcceptedPatients(medicoId: String, onResult: (List<Paciente>) -> Unit) {
     val db = Firebase.firestore
 
@@ -64,30 +60,32 @@ fun listenAcceptedPatients(medicoId: String, onResult: (List<Paciente>) -> Unit)
         .whereEqualTo("medicoId", medicoId)
         .whereEqualTo("status", "aceito")
         .addSnapshotListener { task, _ ->
+
             if (task == null || task.isEmpty) {
                 onResult(emptyList())
-                return@addSnapshotListener
-            }
+            } else {
+                val lista = mutableListOf<Paciente>()
+                var contador = task.size()
 
-            val lista = mutableListOf<Paciente>()
-            var contador = task.size()
+                task.forEach { solicitacao ->
 
-            task.forEach { solicitacao ->
+                    val pacienteId = solicitacao.getString("pacienteId") ?: ""
 
-                val pacienteId = solicitacao.getString("pacienteId") ?: ""
-
-                db.collection("paciente").document(pacienteId).get()
-                    .addOnSuccessListener { paciente ->
-                        lista.add(
-                            Paciente(
-                                nome = paciente.getString("nome") ?: "",
-                                email = paciente.getString("email") ?: ""
+                    db.collection("paciente").document(pacienteId).get()
+                        .addOnSuccessListener { paciente ->
+                            lista.add(
+                                Paciente(
+                                    nome = paciente.getString("nome") ?: "",
+                                    email = paciente.getString("email") ?: ""
+                                )
                             )
-                        )
 
-                        contador--
-                        if (contador == 0) onResult(lista)
-                    }
+                            contador--
+                            if (contador == 0) {
+                                onResult(lista)
+                            }
+                        }
+                }
             }
         }
 }
@@ -102,32 +100,32 @@ fun listenSolicitacoesPendentes(medicoId: String, onResult: (List<Solicitacao>) 
 
             if (task == null || task.isEmpty) {
                 onResult(emptyList())
-                return@addSnapshotListener
-            }
+            } else {
+                val lista = mutableListOf<Solicitacao>()
+                var contador = task.size()
 
-            val lista = mutableListOf<Solicitacao>()
-            var contador = task.size()
+                task.forEach { doc ->
+                    val pacienteId = doc.getString("pacienteId") ?: ""
 
-            task.forEach { doc ->
+                    db.collection("paciente").document(pacienteId).get()
+                        .addOnSuccessListener { paciente ->
 
-                val pacienteId = doc.getString("pacienteId") ?: ""
-
-                db.collection("paciente").document(pacienteId).get()
-                    .addOnSuccessListener { paciente ->
-
-                        lista.add(
-                            Solicitacao(
-                                solicitacaoId = doc.id,
-                                pacienteId = pacienteId,
-                                nome = paciente.getString("nome") ?: "",
-                                email = paciente.getString("email") ?: "",
-                                status = doc.getString("status") ?: ""
+                            lista.add(
+                                Solicitacao(
+                                    solicitacaoId = doc.id,
+                                    pacienteId = pacienteId,
+                                    nome = paciente.getString("nome") ?: "",
+                                    email = paciente.getString("email") ?: "",
+                                    status = doc.getString("status") ?: ""
+                                )
                             )
-                        )
 
-                        contador--
-                        if (contador == 0) onResult(lista)
-                    }
+                            contador--
+                            if (contador == 0) {
+                                onResult(lista)
+                            }
+                        }
+                }
             }
         }
 }
@@ -310,7 +308,7 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
         colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),           // <-- espaço fora do card
+            .padding(vertical = 6.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
@@ -318,7 +316,7 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
                 start = 18.dp,
                 top = 18.dp,
                 end = 18.dp,
-                bottom = 24.dp                   // <-- mais espaço embaixo dos botões
+                bottom = 24.dp
             )
         ) {
             Column {
