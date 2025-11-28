@@ -121,7 +121,6 @@ public class Cliente {
         uidOutro = null;
     }
 
-    // Método Mongo (igual)
     public List<Map<String, Object>> usarMongo(PedidoDeUsoMongo pedido) throws Exception {
         if (!conectado) throw new Exception("Cliente não conectado.");
 
