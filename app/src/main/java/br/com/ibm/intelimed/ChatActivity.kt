@@ -30,31 +30,46 @@ import br.com.ibm.intelimed.network.Cliente
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import kotlinx.coroutines.*
 
+// Model simples da mensagem que vamos mostrar na tela
 data class Mensagem(
     val text: String,
     val senderId: String,
     val timestamp: Long
 )
 
+// ViewModel cuida da parte “chat em si” (socket, fila de envio, lista de mensagens)
 class ChatViewModel(
     private var uidAtual: String,
     private var uidOutro: String
 ) : ViewModel() {
 
+    // Lista reativa que a UI observa
     val mensagens: SnapshotStateList<Mensagem> = mutableStateListOf()
+
+    // Fila para guardar mensagens quando der erro na conexão
     private val filaEnvio = mutableListOf<Mensagem>()
+
+    // Cliente do nosso servidor de chat
     var cliente = Cliente()
     private var conectado = false
 
     init {
+        // Já configura o listener e tenta conectar assim que o ViewModel nasce
         configurarListener()
         conectar()
     }
 
+    // Sempre que chegar algo do servidor, transformo em Mensagem e jogo na lista
     private fun configurarListener() {
         cliente.setListener { pedido ->
-            val msg = Mensagem(pedido.getConteudo(), pedido.getUidRemetente(), pedido.getTimestamp())
+            val msg = Mensagem(
+                pedido.getConteudo(),
+                pedido.getUidRemetente(),
+                pedido.getTimestamp()
+            )
+
             synchronized(mensagens) {
+                // Evita duplicar mensagem quando o servidor reenvia algo
                 if (!mensagens.any { it.timestamp == msg.timestamp && it.senderId == msg.senderId }) {
                     mensagens.add(msg)
                     mensagens.sortBy { it.timestamp }
@@ -63,6 +78,7 @@ class ChatViewModel(
         }
     }
 
+    // Loop de tentativa de conexão (fica tentando até conseguir)
     private fun conectar() {
         viewModelScope.launch(Dispatchers.IO) {
             while (!conectado) {
@@ -71,12 +87,14 @@ class ChatViewModel(
                     conectado = true
                     enviarFilaPendentes()
                 } catch (e: Exception) {
+                    // Se der erro, espero um pouco e tento de novo
                     delay(2000)
                 }
             }
         }
     }
 
+    // Se tinha mensagem pendente na fila, mando tudo assim que conectar
     private fun enviarFilaPendentes() {
         synchronized(filaEnvio) {
             filaEnvio.forEach { enviarMensagemParaServidor(it) }
@@ -84,9 +102,13 @@ class ChatViewModel(
         }
     }
 
+    // Dispara uma nova mensagem (salva na lista e tenta mandar pro servidor)
     fun enviarMensagem(conteudo: String) {
         if (conteudo.isBlank()) return
+
         val msg = Mensagem(conteudo, uidAtual, System.currentTimeMillis())
+
+        // Já mostro na tela mesmo antes de ter certeza que enviou
         synchronized(mensagens) {
             mensagens.add(msg)
             mensagens.sortBy { it.timestamp }
@@ -97,31 +119,35 @@ class ChatViewModel(
                 if (!conectado) conectar()
                 enviarMensagemParaServidor(msg)
             } catch (e: Exception) {
+                // Se der erro no envio, guardo na fila pra tentar depois
                 synchronized(filaEnvio) { filaEnvio.add(msg) }
             }
         }
     }
 
+    // Encapsulei a chamada de envio num método separado
     private fun enviarMensagemParaServidor(msg: Mensagem) {
         cliente.enviarMensagem(msg.text)
     }
 
+    // Caso eu queira “trocar de conta” usando o mesmo ViewModel (ex: reabrir chat com outra pessoa)
     fun trocarConta(novoUidAtual: String, novoUidOutro: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            // 1. Fecha cliente antigo
+            // Fecha a conexão antiga
             cliente.fecharConexao()
 
-            // 2. Cria um novo cliente
+            // Cria um novo cliente zerado
             cliente = Cliente()
             uidAtual = novoUidAtual
             uidOutro = novoUidOutro
             configurarListener()
 
-            // 3. Conecta ao servidor
+            // E conecta de novo com os novos ids
             conectar()
         }
     }
 
+    // Quando o ViewModel morre, derrubo a conexão com o servidor
     override fun onCleared() {
         super.onCleared()
         cliente.fecharConexao()
@@ -129,16 +155,18 @@ class ChatViewModel(
     }
 }
 
-// Activity
+// Activity só faz o “meio de campo” entre Intent e Compose + ViewModel
 class ChatActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Pego infos que vieram da tela anterior
         val uidAtual = intent.getStringExtra("uidAtual") ?: ""
         val uidOutro = intent.getStringExtra("uidOutro") ?: ""
         val nomeOutro = intent.getStringExtra("nomeOutro") ?: "Chat"
 
+        // Crio o ViewModel passando os dois uids
         val viewModel: ChatViewModel by viewModels {
             object : androidx.lifecycle.ViewModelProvider.Factory {
                 override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -185,7 +213,11 @@ fun ChatScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { (context as? ComponentActivity)?.finish() }) {
-                        Icon(Icons.Filled.ArrowBackIosNew, contentDescription = "Voltar", tint = Color.White)
+                        Icon(
+                            Icons.Filled.ArrowBackIosNew,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = teal)
@@ -211,6 +243,7 @@ fun ChatScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Para cada mensagem, mostro um “balão” alinhado à esquerda ou direita
             items(mensagens) { msg ->
                 MensagemBubble(msg.text, msg.senderId == uidAtual)
             }
@@ -218,9 +251,15 @@ fun ChatScreen(
     }
 }
 
+// Barra de digitação + botão de enviar
 @Composable
-fun ChatInputBar(mensagem: String, onChange: (String) -> Unit, onSend: () -> Unit) {
+fun ChatInputBar(
+    mensagem: String,
+    onChange: (String) -> Unit,
+    onSend: () -> Unit
+) {
     val teal = Color(0xFF007C7A)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -240,21 +279,27 @@ fun ChatInputBar(mensagem: String, onChange: (String) -> Unit, onSend: () -> Uni
                 unfocusedIndicatorColor = Color.Transparent,
             )
         )
+
         Spacer(modifier = Modifier.width(8.dp))
+
         IconButton(
             onClick = onSend,
-            modifier = Modifier.size(45.dp).background(teal, CircleShape)
+            modifier = Modifier
+                .size(45.dp)
+                .background(teal, CircleShape)
         ) {
             Icon(Icons.Default.Send, contentDescription = "Enviar", tint = Color.White)
         }
     }
 }
 
+// Balão de mensagem (decide cor/alinhamento dependendo de quem enviou)
 @Composable
 fun MensagemBubble(texto: String, enviadaPeloUsuario: Boolean) {
     val teal = Color(0xFF007C7A)
     val bg = if (enviadaPeloUsuario) teal else Color(0xFFEFEFEF)
     val cor = if (enviadaPeloUsuario) Color.White else Color.Black
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (enviadaPeloUsuario) Arrangement.End else Arrangement.Start
@@ -266,7 +311,9 @@ fun MensagemBubble(texto: String, enviadaPeloUsuario: Boolean) {
         ) {
             Text(
                 texto,
-                modifier = Modifier.padding(12.dp).widthIn(max = 260.dp),
+                modifier = Modifier
+                    .padding(12.dp)
+                    .widthIn(max = 260.dp),
                 color = cor,
                 fontSize = 16.sp
             )

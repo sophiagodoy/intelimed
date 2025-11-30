@@ -28,7 +28,6 @@ import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 
-
 class ForgotPasswordActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,17 +45,18 @@ fun ForgotPassword() {
     val context = LocalContext.current
     var email by remember { mutableStateOf(TextFieldValue("")) }
 
-    // Paleta de cores da tela
+    // Cores que a gente vai usar na tela
     val teal = Color(0xFF2FA49F)
     val white = Color.White
 
+    // Fundo principal da tela
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(teal)
     ) {
 
-        // Seta de voltar no topo
+        // Seta de voltar lá em cima
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -74,7 +74,7 @@ fun ForgotPassword() {
             )
         }
 
-        // Conteúdo centralizado
+        // Bloco central com logo, título e formulário
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
@@ -82,7 +82,7 @@ fun ForgotPassword() {
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo / título
+            // “Logo” em texto
             Text(
                 text = "INTELIMED",
                 color = white,
@@ -93,7 +93,7 @@ fun ForgotPassword() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Subtítulo
+            // Subtítulo da tela
             Text(
                 text = "Recuperar Senha",
                 color = white.copy(alpha = 0.9f),
@@ -103,7 +103,7 @@ fun ForgotPassword() {
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Card branco com o formulário
+            // Card branco com o campo de e-mail e o botão
             Column(
                 modifier = Modifier
                     .background(white, RoundedCornerShape(20.dp))
@@ -120,6 +120,7 @@ fun ForgotPassword() {
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
 
+                // Campo de e-mail
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -133,6 +134,7 @@ fun ForgotPassword() {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Botão que dispara o envio do link de redefinição
                 Button(
                     onClick = { sendPasswordResetEmail(email.text, context) },
                     colors = ButtonDefaults.buttonColors(containerColor = teal),
@@ -151,6 +153,7 @@ fun ForgotPassword() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Atalho pra voltar pra tela de login
                 Text(
                     text = "Voltar ao Login",
                     color = teal,
@@ -166,6 +169,7 @@ fun ForgotPassword() {
     }
 }
 
+// Função que conversa com o Firebase pra mandar o e-mail de redefinição
 fun sendPasswordResetEmail(email: String, context: android.content.Context) {
     if (email.isEmpty()) {
         Toast.makeText(context, "Por favor, insira um e-mail válido.", Toast.LENGTH_SHORT).show()
@@ -176,7 +180,11 @@ fun sendPasswordResetEmail(email: String, context: android.content.Context) {
     auth.sendPasswordResetEmail(email)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                Toast.makeText(context, "Um link de redefinição foi enviado para $email", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    "Um link de redefinição foi enviado para $email",
+                    Toast.LENGTH_LONG
+                ).show()
             } else {
                 val errorMessage = task.exception?.message ?: "Erro ao enviar e-mail."
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()

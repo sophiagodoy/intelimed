@@ -35,15 +35,13 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ===================== CORES =====================
-
+// Cores usadas na tela de relatórios
 private val Teal = Color(0xFF007C7A)
 private val CardBg = Color(0xFFFFFFFF)
 private val FeedbackGreen = Color(0xFF4CAF50)
 private val WaitingRed = Color(0xFFF44336)
 
-// ===================== MODELO =====================
-
+// Modelo que representa um relatório na lista
 data class Report(
     val id: String = "",
     val pacienteId: String = "",
@@ -52,8 +50,6 @@ data class Report(
     val symptoms: String = "",
     val feedback: String = ""
 )
-
-// ===================== ACTIVITY =====================
 
 class ReportsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,8 +60,7 @@ class ReportsActivity : ComponentActivity() {
     }
 }
 
-// ===================== HELPERS =====================
-
+// Converte diferentes formatos de timestamp em uma data dd/MM/yyyy
 fun convertTimestampToDate(value: Any?): String {
     if (value == null) return ""
     return try {
@@ -85,26 +80,24 @@ fun convertTimestampToDate(value: Any?): String {
     }
 }
 
-// ===================== TELA PRINCIPAL =====================
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsScreen() {
     val context = LocalContext.current
 
-    // Lista observável de relatórios exibidos na tela
+    // Lista reativa de relatórios que serão exibidos
     val reports = remember { mutableStateListOf<Report>() }
 
-    // Filtro atual (Não respondidos / Respondidos)
+    // Filtro selecionado no topo (não respondidos ou respondidos)
     var selectedFilter by remember { mutableStateOf("Não respondidos") }
 
+    // Escuta em tempo real os relatórios do médico logado
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
         val user = FirebaseAuth.getInstance().currentUser
 
-        // Se não tiver médico logado, evita crash
+        // Se não houver médico logado, fecha a tela de forma segura
         if (user == null) {
-            // Se quiser, pode voltar pra tela anterior
             (context as? Activity)?.finish()
             return@LaunchedEffect
         }
@@ -117,8 +110,8 @@ fun ReportsScreen() {
             .addSnapshotListener { snapshot, error ->
                 reports.clear()
 
+                // Se der erro na leitura, só não atualiza a lista
                 if (error != null) {
-                    // só limpa e sai, pra não derrubar a tela
                     return@addSnapshotListener
                 }
 
@@ -129,7 +122,7 @@ fun ReportsScreen() {
                     val data = doc.data ?: return@forEach
                     val pacienteId = (data["pacienteId"] as? String).orElseEmpty()
 
-                    // Se não tem pacienteId, cria o report mesmo assim
+                    // Se não tiver pacienteId, ainda assim mostra o relatório na lista
                     if (pacienteId.isBlank()) {
                         reports.add(
                             Report(
@@ -142,7 +135,7 @@ fun ReportsScreen() {
                             )
                         )
                     } else {
-                        // Busca o nome do paciente na coleção "paciente"
+                        // Busca o nome do paciente para mostrar junto do relatório
                         db.collection("paciente")
                             .document(pacienteId)
                             .get()
@@ -166,14 +159,12 @@ fun ReportsScreen() {
             }
     }
 
-    // Aplica o filtro
+    // Aplica o filtro na lista antes de exibir
     val filteredReports = when (selectedFilter) {
         "Respondidos" -> reports.filter { it.feedback.isNotEmpty() }
         "Não respondidos" -> reports.filter { it.feedback.isEmpty() }
         else -> reports
     }
-
-    // ---------- LAYOUT ----------
 
     Scaffold(
         topBar = {
@@ -187,6 +178,7 @@ fun ReportsScreen() {
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        // Volta para a tela anterior do fluxo do médico
                         (context as? Activity)?.finish()
                     }) {
                         Icon(
@@ -211,6 +203,7 @@ fun ReportsScreen() {
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
+            // Botões de filtro "Não respondidos" / "Respondidos"
             FilterRow(
                 selected = selectedFilter,
                 onSelect = { selectedFilter = it }
@@ -218,6 +211,7 @@ fun ReportsScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Estado vazio quando não há relatórios para o filtro escolhido
             if (filteredReports.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -226,6 +220,7 @@ fun ReportsScreen() {
                     Text("Nenhum relatório encontrado.", color = Color.Gray)
                 }
             } else {
+                // Lista dos relatórios filtrados
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -240,11 +235,10 @@ fun ReportsScreen() {
     }
 }
 
-// Helper pra evitar null em String
+// Helper simples para tratar String? nula
 private fun String?.orElseEmpty() = this ?: ""
 
-// ===================== FILTRO =====================
-
+// Linha de filtros no topo da tela
 @Composable
 fun FilterRow(selected: String, onSelect: (String) -> Unit) {
     Row(
@@ -277,12 +271,12 @@ fun FilterRow(selected: String, onSelect: (String) -> Unit) {
     }
 }
 
-// ===================== CARD DO RELATÓRIO =====================
-
+// Card individual de cada relatório na lista
 @Composable
 fun ReportCard(report: Report) {
     val context = LocalContext.current
 
+    // Define status visual com base na existência de feedback
     val (statusText, statusColor) = if (report.feedback.isNotEmpty()) {
         "Feedback recebido" to FeedbackGreen
     } else {
@@ -296,6 +290,8 @@ fun ReportCard(report: Report) {
             .fillMaxWidth()
             .shadow(elevation = 4.dp, shape = RoundedCornerShape(20.dp))
             .clickable {
+                // Abre a tela de respostas do paciente.
+                // Se já tiver feedback, abre em modo somente visualização.
                 val intent = Intent(context, RespondingPatientActivity::class.java).apply {
                     putExtra("relatorioId", report.id)
                     putExtra("pacienteId", report.pacienteId)
@@ -322,7 +318,7 @@ fun ReportCard(report: Report) {
 
             Spacer(Modifier.height(4.dp))
 
-            // Data
+            // Data do relatório
             Text(
                 text = report.date,
                 fontWeight = FontWeight.SemiBold,
@@ -332,7 +328,7 @@ fun ReportCard(report: Report) {
 
             Spacer(Modifier.height(12.dp))
 
-            // Status
+            // Status do feedback (já respondido ou não)
             Text(
                 text = statusText,
                 color = statusColor,
@@ -342,7 +338,7 @@ fun ReportCard(report: Report) {
 
             Spacer(Modifier.height(10.dp))
 
-            // Sintomas / sentimento
+            // Pequeno resumo usando o sentimento/sintomas do dia
             Text(
                 text = "Sintomas: ${report.symptoms}",
                 color = Color.DarkGray,

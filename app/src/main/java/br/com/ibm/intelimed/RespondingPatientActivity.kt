@@ -30,6 +30,7 @@ class RespondingPatientActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Pego os dados que vieram da lista (qual relatório, qual paciente e se é só leitura)
         val relatorioId = intent.getStringExtra("relatorioId") ?: ""
         val pacienteId = intent.getStringExtra("pacienteId") ?: ""
         val somenteVisualizar = intent.getBooleanExtra("somenteVisualizar", false)
@@ -51,22 +52,32 @@ class RespondingPatientActivity : ComponentActivity() {
 fun RespondingPatient(
     pacienteId: String,
     relatorioId: String,
+    // quando true: médico só visualiza o que já foi enviado (sem editar feedback)
     somenteVisualizar: Boolean
 ) {
     val teal = Color(0xFF007C7A)
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    // Mapa cru com todas as respostas de sintomas desse relatório
     var sintomasMap by remember { mutableStateOf<Map<String, Any>>(emptyMap()) }
+
+    // Texto do feedback que o médico está digitando
     var textoFeedback by remember { mutableStateOf("") }
+
+    // Nome do paciente mostrado no topo
     var nomePaciente by remember { mutableStateOf("") }
+
+    // Feedback que já está salvo no relatório (se existir)
     var feedbackExistente by remember { mutableStateOf("") }
 
+    // Estados de carregamento/erro da tela
     var carregando by remember { mutableStateOf(true) }
     var erro by remember { mutableStateOf<String?>(null) }
 
     val db = FirebaseFirestore.getInstance()
 
+    // Quando pacienteId ou relatorioId mudam, recarrego os dados desse relatório
     LaunchedEffect(pacienteId, relatorioId) {
 
         if (pacienteId.isBlank() || relatorioId.isBlank()) {
@@ -74,7 +85,7 @@ fun RespondingPatient(
             carregando = false
         } else {
 
-            // Nome do paciente
+            // Busca o nome do paciente (para exibir no título da tela)
             db.collection("paciente")
                 .document(pacienteId)
                 .get()
@@ -82,7 +93,7 @@ fun RespondingPatient(
                     nomePaciente = doc.getString("nome") ?: "Paciente"
                 }
 
-            // Sintomas do paciente
+            // Busca as respostas salvas desse dia (coleção de sintomas do paciente)
             db.collection("paciente")
                 .document(pacienteId)
                 .collection("sintomas")
@@ -94,8 +105,12 @@ fun RespondingPatient(
                         erro = "Respostas não encontradas."
                     } else {
                         sintomasMap = data
+
+                        // Se já existir feedback salvo, guardo para exibir
                         val fb = data["feedback"]?.toString() ?: ""
                         feedbackExistente = fb
+
+                        // Se veio em modo apenas leitura, já jogo o texto no campo
                         if (somenteVisualizar && fb.isNotBlank()) {
                             textoFeedback = fb
                         }
@@ -113,6 +128,7 @@ fun RespondingPatient(
         topBar = {
             TopAppBar(
                 title = {
+                    // Título mostra o nome do paciente pra ajudar o médico a se localizar
                     Text(
                         "Respostas de $nomePaciente",
                         color = Color.White,
@@ -122,6 +138,7 @@ fun RespondingPatient(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        // Volta para a tela anterior
                         (context as? Activity)?.finish()
                     }) {
                         Icon(
@@ -145,6 +162,7 @@ fun RespondingPatient(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
+            // Cabeçalho da parte de respostas
             Text(
                 "Respostas do Paciente",
                 fontWeight = FontWeight.Bold,
@@ -152,6 +170,7 @@ fun RespondingPatient(
                 fontSize = 20.sp
             )
 
+            // Card que mostra todas as respostas daquele dia
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9)),
@@ -165,7 +184,7 @@ fun RespondingPatient(
                         sintomasMap.isEmpty() -> Text("Nenhuma resposta encontrada.", color = Color.Gray)
 
                         else -> {
-
+                            // Lista de campos que quero exibir na ordem, com a chave do Firestore + label amigável
                             val camposExibicao = listOf(
                                 "dataRegistro"       to "Data do registro",
                                 "sentimento"         to "Como está se sentindo?",
@@ -190,10 +209,12 @@ fun RespondingPatient(
                                 "observacoes"        to "Observações gerais"
                             )
 
+                            // Percorro cada campo e só mostro se tiver algum valor preenchido
                             for ((chave, label) in camposExibicao) {
 
                                 val valor = sintomasMap[chave] ?: continue
 
+                                // Para a data eu converto o timestamp, o resto vira string direto
                                 val textoValor = if (chave == "dataRegistro") {
                                     convertTimestampToDate(valor)
                                 } else {
@@ -220,8 +241,7 @@ fun RespondingPatient(
                 }
             }
 
-            // ==== FEEDBACK ====
-
+            // Seção de feedback médico (edição ou apenas visualização, dependendo do fluxo)
             Text(
                 text = if (somenteVisualizar) "Feedback enviado" else "Responder ao Paciente",
                 fontWeight = FontWeight.Bold,
@@ -229,9 +249,11 @@ fun RespondingPatient(
                 fontSize = 20.sp
             )
 
+            // Campo onde o médico escreve (ou só lê) o feedback
             OutlinedTextField(
                 value = if (somenteVisualizar) feedbackExistente else textoFeedback,
                 onValueChange = {
+                    // Só deixo alterar se não for modo somente leitura
                     if (!somenteVisualizar) textoFeedback = it
                 },
                 label = {
@@ -249,20 +271,29 @@ fun RespondingPatient(
                     .height(150.dp)
             )
 
+            // Se for só visualização, não exibo o botão de enviar
             if (!somenteVisualizar) {
                 Button(
                     onClick = {
                         if (textoFeedback.isBlank()) {
-                            Toast.makeText(context, "Escreva um feedback antes de enviar.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "Escreva um feedback antes de enviar.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } else {
 
                             val uidMedico = FirebaseAuth.getInstance().currentUser?.uid
 
                             if (uidMedico == null) {
-                                Toast.makeText(context, "Usuário não autenticado.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Usuário não autenticado.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             } else {
 
-                                // Atualiza no paciente
+                                // Atualiza o feedback dentro do relatório do paciente
                                 db.collection("paciente")
                                     .document(pacienteId)
                                     .collection("sintomas")
@@ -270,21 +301,34 @@ fun RespondingPatient(
                                     .update("feedback", textoFeedback)
                                     .addOnSuccessListener {
 
+                                        // E também no relatório espelhado que o médico vê
                                         db.collection("medico")
                                             .document(uidMedico)
                                             .collection("relatorios")
                                             .document(relatorioId)
                                             .update("feedback", textoFeedback)
                                             .addOnSuccessListener {
-                                                Toast.makeText(context, "Feedback enviado com sucesso!", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Feedback enviado com sucesso!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                                 (context as? Activity)?.finish()
                                             }
                                             .addOnFailureListener {
-                                                Toast.makeText(context, "Erro ao salvar feedback na lista de relatórios.", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Erro ao salvar feedback na lista de relatórios.",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                     }
                                     .addOnFailureListener {
-                                        Toast.makeText(context, "Erro ao enviar feedback.", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Erro ao enviar feedback.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                             }
                         }

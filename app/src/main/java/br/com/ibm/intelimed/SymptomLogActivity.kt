@@ -38,7 +38,7 @@ fun RegistroSintomas() {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
-    // ===== Estados do formulário =====
+    // Campos principais do formulário (um estado pra cada resposta da tela)
     var sentimento by remember { mutableStateOf(TextFieldValue("")) }
     var dormiuBem by remember { mutableStateOf("") }
     var cansaco by remember { mutableStateOf("") }
@@ -65,12 +65,11 @@ fun RegistroSintomas() {
 
     var observacoes by remember { mutableStateOf(TextFieldValue("")) }
 
-    // ===== Layout =====
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    // Mesmo padrão das outras telas (título à esquerda)
+                    // Título padrão das telas de fluxo do paciente
                     Text(
                         text = "Registro de Sintomas",
                         fontSize = 20.sp,
@@ -80,6 +79,7 @@ fun RegistroSintomas() {
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        // Volta para a home do paciente limpando a pilha
                         val intent = Intent(context, MainPatientActivity::class.java)
                         intent.addFlags(
                             Intent.FLAG_ACTIVITY_CLEAR_TOP or
@@ -113,6 +113,7 @@ fun RegistroSintomas() {
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
+            // Texto inicial explicando para onde vão as respostas
             Text(
                 text = "As respostas desse registro serão enviadas ao médico que você escolheu para te acompanhar.",
                 color = Color.Gray,
@@ -127,7 +128,7 @@ fun RegistroSintomas() {
                 fontWeight = FontWeight.Bold
             )
 
-            // ===== Campo Sentimento =====
+            // Como a pessoa está se sentindo em geral (campo livre)
             OutlinedTextField(
                 value = sentimento,
                 onValueChange = { sentimento = it },
@@ -135,13 +136,13 @@ fun RegistroSintomas() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ===== Perguntas gerais =====
+            // Perguntas mais diretas de rotina/estado geral
             PerguntaSimNao("Dormiu bem na última noite?", dormiuBem) { dormiuBem = it }
             PerguntaSimNao("Sentiu cansaço excessivo?", cansaco) { cansaco = it }
             PerguntaSimNao("Está se alimentando normalmente?", alimentacao) { alimentacao = it }
             PerguntaSimNao("Está se hidratando bem?", hidratacao) { hidratacao = it }
 
-            // ===================== DOR E DESCONFORTO =====================
+            // Seção focada em dor e desconforto
             Text(
                 text = "DOR E DESCONFORTO",
                 color = Color(0xFF007C7A),
@@ -165,9 +166,12 @@ fun RegistroSintomas() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            PerguntaSimNao("O tipo de dor mudou desde a última vez?", tipoDorMudou) { tipoDorMudou = it }
+            PerguntaSimNao(
+                "O tipo de dor mudou desde a última vez?",
+                tipoDorMudou
+            ) { tipoDorMudou = it }
 
-            // ===================== SINTOMAS FÍSICOS =====================
+            // Seção com sintomas físicos mais gerais
             Text(
                 text = "SINTOMAS FÍSICOS",
                 color = Color(0xFF007C7A),
@@ -188,7 +192,7 @@ fun RegistroSintomas() {
             PerguntaSimNao("Apresentou tontura ou fraqueza?", tontura) { tontura = it }
             PerguntaSimNao("Teve sangramento, secreção ou inchaço?", sangramento) { sangramento = it }
 
-            // ===================== CICATRIZAÇÃO =====================
+            // Parte só para coisas ligadas à cicatrização / feridas
             Text(
                 text = "CICATRIZAÇÃO / FERIMENTOS",
                 color = Color(0xFF007C7A),
@@ -196,9 +200,10 @@ fun RegistroSintomas() {
                 fontWeight = FontWeight.Bold
             )
 
-            PerguntaSimNao("Fez algum procedimento ou cicatrização recente?", fezCicatrizacao) {
-                fezCicatrizacao = it
-            }
+            PerguntaSimNao(
+                "Fez algum procedimento ou cicatrização recente?",
+                fezCicatrizacao
+            ) { fezCicatrizacao = it }
 
             OutlinedTextField(
                 value = estadoCicatrizacao,
@@ -207,7 +212,7 @@ fun RegistroSintomas() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ===================== MEDICAÇÃO =====================
+            // Seção específica sobre medicamentos
             Text(
                 text = "MEDICAÇÃO",
                 color = Color(0xFF007C7A),
@@ -215,9 +220,10 @@ fun RegistroSintomas() {
                 fontWeight = FontWeight.Bold
             )
 
-            PerguntaSimNao("Tomou algum medicamento nas últimas 24h?", tomouMedicacao) {
-                tomouMedicacao = it
-            }
+            PerguntaSimNao(
+                "Tomou algum medicamento nas últimas 24h?",
+                tomouMedicacao
+            ) { tomouMedicacao = it }
 
             OutlinedTextField(
                 value = qualMedicacao,
@@ -233,7 +239,7 @@ fun RegistroSintomas() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ===================== OBSERVAÇÕES =====================
+            // Campo livre para o paciente escrever qualquer coisa que achar importante
             Text(
                 text = "OBSERVAÇÕES GERAIS",
                 color = Color(0xFF007C7A),
@@ -250,7 +256,7 @@ fun RegistroSintomas() {
                     .height(120.dp)
             )
 
-            // ===================== BOTÃO FINAL =====================
+            // Controle do alerta de confirmação antes de finalizar
             var mostrarDialogo by remember { mutableStateOf(false) }
 
             if (mostrarDialogo) {
@@ -282,6 +288,7 @@ fun RegistroSintomas() {
                 )
             }
 
+            // Botão que de fato dispara o salvamento no Firestore
             Button(
                 onClick = {
                     savePatientSymptoms(
@@ -307,6 +314,7 @@ fun RegistroSintomas() {
                         horarioMedicacao = horarioMedicacao.text,
                         observacoes = observacoes.text,
                         onSuccess = { pacienteId, relatorioId ->
+                            // Depois de salvar, só aviso e volto pra home
                             Toast.makeText(
                                 context,
                                 "Sintomas enviados ao médico!",
@@ -329,8 +337,7 @@ fun RegistroSintomas() {
     }
 }
 
-// ===================== ACTIVITY =====================
-
+// Activity que só sobe o Composable na tela
 class SymptomLogActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -342,8 +349,7 @@ class SymptomLogActivity : ComponentActivity() {
     }
 }
 
-// ===================== FIREBASE SAVE =====================
-
+// Função que agrupa tudo e salva o relatório tanto no espaço do paciente quanto do médico
 fun savePatientSymptoms(
     context: Context,
     sentimento: String,
@@ -372,17 +378,19 @@ fun savePatientSymptoms(
     val db = Firebase.firestore
     val pacienteId = auth.currentUser?.uid
 
+    // Se não tiver paciente logado, nem tento salvar
     if (pacienteId == null) {
         Toast.makeText(context, "Error: patient not authenticated.", Toast.LENGTH_SHORT).show()
         return
     }
 
-    // Gera um ID único e reutiliza em PACIENTE e MÉDICO
+    // Gero um ID de relatório e uso o mesmo tanto para o paciente quanto para o médico
     val relatorioId = db.collection("paciente")
         .document(pacienteId)
         .collection("sintomas")
         .document().id
 
+    // Monto o map com todas as respostas do formulário
     val sintomas = hashMapOf(
         "pacienteId" to pacienteId,
         "relatorioId" to relatorioId,
@@ -409,7 +417,7 @@ fun savePatientSymptoms(
         "observacoes" to observacoes
     )
 
-    // Salva no médico (se houver médico vinculado)
+    // Primeiro tento achar um médico vinculado para esse paciente (status aceito)
     db.collection("solicitacoes")
         .whereEqualTo("pacienteId", pacienteId)
         .whereEqualTo("status", "aceito")
@@ -418,6 +426,7 @@ fun savePatientSymptoms(
             if (!result.isEmpty) {
                 val medicoId = result.documents.first().getString("medicoId")!!
 
+                // Se tiver médico, salvo também em /medico/{id}/relatorios/{relatorioId}
                 db.collection("medico")
                     .document(medicoId)
                     .collection("relatorios")
@@ -426,7 +435,7 @@ fun savePatientSymptoms(
             }
         }
 
-    // Salva no paciente
+    // Registro oficial do relatório na pasta do paciente
     db.collection("paciente")
         .document(pacienteId)
         .collection("sintomas")
@@ -440,8 +449,7 @@ fun savePatientSymptoms(
         }
 }
 
-// ===================== FUNÇÕES AUXILIARES =====================
-
+// Busca todas as especialidades cadastradas nos médicos (usado em outra tela)
 fun getEspecialidades(
     onSucesso: (List<String>) -> Unit,
     onErro: (Exception) -> Unit
@@ -456,6 +464,7 @@ fun getEspecialidades(
             for (documento in task) {
                 val espCampo = documento.get("especialidade")
 
+                // Aqui trato tanto o caso de ser string única quanto lista
                 val espList = when (espCampo) {
                     is String -> listOf(espCampo)
                     is List<*> -> espCampo.map { it.toString() }
@@ -472,6 +481,7 @@ fun getEspecialidades(
         }
 }
 
+// Componente de pergunta "Sim / Não" reaproveitado em vários pontos
 @Composable
 fun PerguntaSimNao(
     pergunta: String,
@@ -511,4 +521,3 @@ fun RegistroSintomasPreview() {
         RegistroSintomas()
     }
 }
-

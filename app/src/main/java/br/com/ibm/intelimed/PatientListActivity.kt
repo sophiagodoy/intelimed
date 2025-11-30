@@ -1,5 +1,5 @@
 /**
- * Tela de lista de pacientes do médico e solicitações
+ * Tela de lista de pacientes do médico e das solicitações recebidas
  */
 
 package br.com.ibm.intelimed
@@ -36,14 +36,14 @@ class PatientListActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             IntelimedTheme {
+                // Tela que o médico usa para ver pacientes e solicitações
                 PatientList(onBack = { finish() })
             }
         }
     }
 }
 
-// ---------------------- MODELOS ----------------------
-
+// Representa um paciente já aceito pelo médico
 data class Paciente(
     val solicitacaoId: String = "",
     val pacienteId: String = "",
@@ -51,6 +51,7 @@ data class Paciente(
     val email: String = ""
 )
 
+// Representa uma solicitação feita por um paciente (ainda pendente)
 data class Solicitacao(
     val solicitacaoId: String = "",
     val pacienteId: String = "",
@@ -59,8 +60,7 @@ data class Solicitacao(
     val status: String = ""
 )
 
-// ---------------------- FIREBASE ----------------------
-
+// Escuta em tempo real os pacientes que já foram aceitos pelo médico
 fun listenAcceptedPatients(medicoId: String, onResult: (List<Paciente>) -> Unit) {
     val db = Firebase.firestore
 
@@ -76,6 +76,7 @@ fun listenAcceptedPatients(medicoId: String, onResult: (List<Paciente>) -> Unit)
             val lista = mutableListOf<Paciente>()
             var contador = task.size()
 
+            // Para cada solicitação aceita, busco os dados do paciente
             task.forEach { solicitacao ->
 
                 val pacienteId = solicitacao.getString("pacienteId") ?: ""
@@ -100,6 +101,7 @@ fun listenAcceptedPatients(medicoId: String, onResult: (List<Paciente>) -> Unit)
         }
 }
 
+// Escuta em tempo real as solicitações pendentes para esse médico
 fun listenSolicitacoesPendentes(medicoId: String, onResult: (List<Solicitacao>) -> Unit) {
     val db = Firebase.firestore
 
@@ -116,6 +118,7 @@ fun listenSolicitacoesPendentes(medicoId: String, onResult: (List<Solicitacao>) 
             val lista = mutableListOf<Solicitacao>()
             var contador = task.size()
 
+            // Para cada solicitação pendente, carrego as infos do paciente
             task.forEach { doc ->
 
                 val pacienteId = doc.getString("pacienteId") ?: ""
@@ -140,33 +143,33 @@ fun listenSolicitacoesPendentes(medicoId: String, onResult: (List<Solicitacao>) 
         }
 }
 
+// Marca uma solicitação como "aceito"
 fun aceitarSolicitacao(solicitacaoId: String) {
     Firebase.firestore.collection("solicitacoes")
         .document(solicitacaoId)
         .update("status", "aceito")
 }
 
+// Marca uma solicitação como "recusado"
 fun recusarSolicitacao(solicitacaoId: String) {
     Firebase.firestore.collection("solicitacoes")
         .document(solicitacaoId)
         .update("status", "recusado")
 }
 
-// encerrar atendimento depois de aceito
+// Marca um atendimento já aceito como "encerrado"
 fun encerrarAtendimento(solicitacaoId: String) {
     Firebase.firestore.collection("solicitacoes")
         .document(solicitacaoId)
         .update("status", "encerrado")
 }
 
-// ---------------------- TELA PRINCIPAL ----------------------
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientList(onBack: (() -> Unit)? = null) {
 
     val teal = Color(0xFF007C7A)
-    var abaSelecionada by remember { mutableStateOf(0) }
+    var abaSelecionada by remember { mutableStateOf(0) } // 0 = Pacientes, 1 = Solicitações
 
     Scaffold(
         topBar = {
@@ -201,7 +204,7 @@ fun PatientList(onBack: (() -> Unit)? = null) {
                 .padding(24.dp)
         ) {
 
-            // -------- ABAS PERSONALIZADAS --------
+            // Abas para alternar entre pacientes aceitos e solicitações
             TabRow(
                 selectedTabIndex = abaSelecionada,
                 containerColor = Color.White,
@@ -241,6 +244,7 @@ fun PatientList(onBack: (() -> Unit)? = null) {
 
             Spacer(Modifier.height(16.dp))
 
+            // Conteúdo muda de acordo com a aba selecionada
             when (abaSelecionada) {
                 0 -> ListaPacientesAceitos()
                 1 -> ListaSolicitacoesPendentes()
@@ -249,8 +253,6 @@ fun PatientList(onBack: (() -> Unit)? = null) {
     }
 }
 
-// ---------------------- LISTA PACIENTES ----------------------
-
 @Composable
 fun ListaPacientesAceitos() {
     val medicoId = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -258,6 +260,7 @@ fun ListaPacientesAceitos() {
     var pacientes by remember { mutableStateOf<List<Paciente>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
+    // Assim que a tela entra, começo a ouvir a lista de pacientes aceitos
     LaunchedEffect(Unit) {
         listenAcceptedPatients(medicoId) { lista ->
             pacientes = lista
@@ -282,8 +285,6 @@ fun ListaPacientesAceitos() {
     }
 }
 
-// ---------------------- LISTA SOLICITAÇÕES ----------------------
-
 @Composable
 fun ListaSolicitacoesPendentes() {
     val medicoId = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -291,6 +292,7 @@ fun ListaSolicitacoesPendentes() {
     var solicitacoes by remember { mutableStateOf<List<Solicitacao>>(emptyList()) }
     var carregando by remember { mutableStateOf(true) }
 
+    // Aqui eu escuto em tempo real as solicitações que ainda estão pendentes
     LaunchedEffect(Unit) {
         listenSolicitacoesPendentes(medicoId) { lista ->
             solicitacoes = lista
@@ -315,11 +317,10 @@ fun ListaSolicitacoesPendentes() {
     }
 }
 
-// ---------------------- CARD SOLICITAÇÃO ----------------------
-
 @Composable
 fun CardSolicitacao(solicitacao: Solicitacao) {
 
+    // Card que mostra dados da solicitação e botões para aceitar/recusar
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -372,14 +373,12 @@ fun CardSolicitacao(solicitacao: Solicitacao) {
     }
 }
 
-// ---------------------- CARD PACIENTE ----------------------
-
 @Composable
 fun PacienteCardModern(paciente: Paciente) {
     val context = LocalContext.current
     var mostrarDialogo by remember { mutableStateOf(false) }
 
-    // Dialog de confirmação para encerrar atendimento
+    // Diálogo para confirmar o encerramento do atendimento
     if (mostrarDialogo) {
         AlertDialog(
             onDismissRequest = { mostrarDialogo = false },
@@ -408,6 +407,7 @@ fun PacienteCardModern(paciente: Paciente) {
         )
     }
 
+    // Card com informações do paciente já em atendimento
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -439,6 +439,7 @@ fun PacienteCardModern(paciente: Paciente) {
                     )
                 }
 
+                // Só mostra o botão de encerrar se tiver um ID de solicitação válido
                 if (paciente.solicitacaoId.isNotBlank()) {
                     TextButton(
                         onClick = { mostrarDialogo = true }

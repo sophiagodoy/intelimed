@@ -28,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth
 class MainDoctorActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Deixa a tela aproveitando melhor a área (status bar, etc.)
         enableEdgeToEdge()
         setContent {
             IntelimedTheme {
@@ -43,9 +44,14 @@ fun DoctorHome() {
 
     val teal = Color(0xFF007C7A)
     val context = LocalContext.current
+
+    // Controle do popup de sair
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    // Nome que vai aparecer no "Olá, Dr. ..."
     var nome by remember { mutableStateOf("Usuário") }
 
+    // Quando a tela entra, busca o nome do médico no Firebase
     LaunchedEffect(Unit) {
         buscarNomeUsuario { resultado ->
             nome = resultado
@@ -55,7 +61,13 @@ fun DoctorHome() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("INTELIMED", color = Color.White, fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "INTELIMED",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = teal),
             )
         },
@@ -63,7 +75,7 @@ fun DoctorHome() {
             NavigationBar(containerColor = Color.White) {
                 NavigationBarItem(
                     selected = true,
-                    onClick = {},
+                    onClick = { /* já está na home */ },
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text("Início") }
                 )
@@ -84,19 +96,22 @@ fun DoctorHome() {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Título principal da tela
             Text(
                 text = "Bem-vindo, Doutor(a)!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
+
+            // Saudação com o nome do médico
             Text(
                 text = "Olá, Dr. $nome",
                 fontSize = 18.sp,
                 color = Color.DarkGray
             )
 
-            // Cards de opções
+            // Primeira linha de cards: Pacientes / Chat
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -113,6 +128,7 @@ fun DoctorHome() {
                 }
             }
 
+            // Segunda linha de cards: Feedbacks / Guia de Atendimento
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -132,7 +148,7 @@ fun DoctorHome() {
         }
     }
 
-    // Popup de confirmação de logout
+    // Popup pra confirmar se o médico quer realmente sair
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -140,10 +156,12 @@ fun DoctorHome() {
             text = { Text("Deseja realmente sair da sua conta?") },
             confirmButton = {
                 TextButton(onClick = {
+                    // Faz o logout no Firebase e manda para a tela de escolha de login
                     FirebaseAuth.getInstance().signOut()
                     showLogoutDialog = false
                     val intent = Intent(context, AuthChoiceActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    intent.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(intent)
                 }) {
                     Text("Sim", color = teal)

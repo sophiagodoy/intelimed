@@ -1,6 +1,4 @@
-/**
- * Tela para o paciente ler o feedback do médico
- */
+// Tela onde o paciente consegue ler a resposta do médico
 package br.com.ibm.intelimed
 
 import android.app.Activity
@@ -29,13 +27,14 @@ class DoctorFeedbackActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Coisas que chegam da tela de lista (card de feedback)
         val feedbackText = intent.getStringExtra("feedback") ?: ""
         val dataRegistro = intent.getStringExtra("dataRegistro") ?: ""
         val sentimento = intent.getStringExtra("sentimento") ?: ""
-
-        val pacienteId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-
         val relatorioId = intent.getStringExtra("relatorioId") ?: ""
+
+        // Id do paciente logado (para buscar o relatório certo)
+        val pacienteId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
         setContent {
             IntelimedTheme {
@@ -65,10 +64,14 @@ fun DoctorFeedbackScreen(
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
 
+    // Aqui vou guardar tudo que o paciente respondeu naquele dia
     var sintomasMap by remember { mutableStateOf<Map<String, Any>>(emptyMap()) }
+
+    // Estados básicos de carregamento/erro
     var carregando by remember { mutableStateOf(true) }
     var erro by remember { mutableStateOf<String?>(null) }
 
+    // Busca o relatório completo em /paciente/{id}/sintomas/{relatorioId}
     LaunchedEffect(pacienteId, relatorioId) {
         if (pacienteId.isBlank() || relatorioId.isBlank()) {
             erro = "Não foi possível carregar os detalhes do seu relatório."
@@ -139,6 +142,7 @@ fun DoctorFeedbackScreen(
                 fontSize = 20.sp
             )
 
+            // Infos básicas do registro (data e sentimento geral)
             if (dataRegistro.isNotBlank()) {
                 Text(
                     text = "Data do registro: $dataRegistro",
@@ -155,7 +159,7 @@ fun DoctorFeedbackScreen(
                 )
             }
 
-            // ========== CARD COM OS SINTOMAS ==========
+            //  CARD COM AS RESPOSTAS DO PACIENTE
             Text(
                 "O que você relatou nesse dia",
                 fontWeight = FontWeight.Bold,
@@ -192,6 +196,7 @@ fun DoctorFeedbackScreen(
                         }
 
                         else -> {
+                            // Mapeio chave do banco -> texto bonitinho para o paciente
                             val camposExibicao = listOf(
                                 "sentimento"         to "Como você disse que estava se sentindo?",
                                 "dormiuBem"          to "Dormiu bem na última noite?",
@@ -215,6 +220,7 @@ fun DoctorFeedbackScreen(
                                 "observacoes"        to "Observações gerais"
                             )
 
+                            // Só mostra os campos que realmente têm valor
                             for ((chave, label) in camposExibicao) {
                                 val textoValor = sintomasMap[chave]?.toString().orEmpty()
 
@@ -238,7 +244,7 @@ fun DoctorFeedbackScreen(
                 }
             }
 
-            // ========== CARD DO FEEDBACK ==========
+            //  CARD COM O FEEDBACK DO MÉDICO
             Text(
                 "Feedback do médico",
                 fontWeight = FontWeight.Bold,

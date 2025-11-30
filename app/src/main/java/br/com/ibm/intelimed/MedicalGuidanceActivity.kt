@@ -1,5 +1,5 @@
 /**
- * Orientações médicas para o paciente
+ * Orientações médicas gerais para o paciente visualizar na parte fixa do app
  */
 
 package br.com.ibm.intelimed
@@ -45,6 +45,7 @@ fun OrientacoesMedicas() {
     val cardBg = Color(0xFFF7FDFC)
     val context = LocalContext.current
 
+    // Aqui eu monto o layout base com o topo fixo e o conteúdo rolável
     Scaffold(
         topBar = {
             TopAppBar(
@@ -57,6 +58,7 @@ fun OrientacoesMedicas() {
                     )
                 },
                 navigationIcon = {
+                    // Botão de voltar levando de volta para a home do paciente
                     IconButton(
                         onClick = {
                             val intent = Intent(context, MainPatientActivity::class.java)
@@ -86,6 +88,7 @@ fun OrientacoesMedicas() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
+            // Lista fixa de orientações com o texto e o ícone correspondente
             val orientacoes = listOf(
                 "Mantenha uma alimentação equilibrada, rica em frutas e vegetais." to Icons.Default.Restaurant,
                 "Hidrate-se: beba ao menos 2 litros de água por dia." to Icons.Default.LocalDrink,
@@ -103,6 +106,7 @@ fun OrientacoesMedicas() {
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 orientacoes.forEach { (texto, icone) ->
+                    // Cada orientação fica dentro de um card bonitinho, com ícone + texto
                     Card(
                         colors = CardDefaults.cardColors(containerColor = cardBg),
                         shape = RoundedCornerShape(12.dp),
@@ -132,6 +136,7 @@ fun OrientacoesMedicas() {
                 }
             }
 
+            // Só um espaço extra no final pra não ficar tudo colado no rodapé
             Spacer(modifier = Modifier.height(20.dp))
         }
     }

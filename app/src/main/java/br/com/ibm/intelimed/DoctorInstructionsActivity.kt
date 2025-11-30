@@ -80,7 +80,7 @@ fun MedicalGuidelinesScreen() {
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // Título
+            // Título principal da tela
             Text(
                 "Como auxiliar o paciente",
                 fontWeight = FontWeight.Bold,
@@ -88,7 +88,7 @@ fun MedicalGuidelinesScreen() {
                 fontSize = 20.sp
             )
 
-            // CARD: Interpretação dos sintomas
+            // Bloco: Interpretação dos sintomas
             Text(
                 "Interpretação dos sintomas",
                 fontWeight = FontWeight.Bold,
@@ -110,7 +110,7 @@ fun MedicalGuidelinesScreen() {
                 }
             }
 
-            // CARD: Comunicação com clareza
+            // Bloco: Comunicação clara
             Text(
                 "Comunicação clara",
                 fontWeight = FontWeight.Bold,
@@ -132,7 +132,7 @@ fun MedicalGuidelinesScreen() {
                 }
             }
 
-            // CARD: Feedback útil
+            // Bloco: Como escrever um bom feedback
             Text(
                 "Como escrever um bom feedback",
                 fontWeight = FontWeight.Bold,
@@ -158,7 +158,7 @@ fun MedicalGuidelinesScreen() {
                 }
             }
 
-            // CARD: Quando orientar busca de atendimento
+            // Bloco: Quando indicar atendimento presencial
             Text(
                 "Quando orientar atendimento presencial",
                 fontWeight = FontWeight.Bold,

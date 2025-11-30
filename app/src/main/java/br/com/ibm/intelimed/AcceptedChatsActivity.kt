@@ -1,6 +1,4 @@
-/**
- * Tela que lista os pacientes para o Chat do Médico
- */
+// Tela de conversas: lista com quem o usuário pode abrir chat (paciente ou médico)
 package br.com.ibm.intelimed
 
 import android.content.Context
@@ -28,6 +26,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 class AcceptedChatsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Descubro se essa tela está sendo aberta no modo médico ou paciente
         val isMedico = intent.getBooleanExtra("isMedico", true)
 
         setContent {
@@ -48,11 +48,14 @@ fun AcceptedChatsScreen(
     val db = FirebaseFirestore.getInstance()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
+    // Lista com quem o usuário pode conversar (pacientes ou médicos)
     var listaPacientes by remember { mutableStateOf<List<PacienteInfo>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
 
     val context = LocalContext.current
 
+    // Toda vez que o usuário logado ou o "perfil" (médico/paciente) muda,
+    // eu recarrego a lista de conversas.
     LaunchedEffect(userId, isMedico) {
 
         if (userId == null) {
@@ -62,6 +65,7 @@ fun AcceptedChatsScreen(
             loading = true
 
             if (isMedico) {
+                // Aqui o médico enxerga todos os pacientes com solicitação aceita
                 db.collection("solicitacoes")
                     .whereEqualTo("medicoId", userId)
                     .whereEqualTo("status", "aceito")
@@ -80,6 +84,7 @@ fun AcceptedChatsScreen(
                                 val temp = mutableListOf<PacienteInfo>()
                                 var loaded = 0
 
+                                // Para cada solicitação aceita, busco os dados do paciente
                                 for (sol in solicitacoes) {
                                     val pacienteId = sol.getString("pacienteId")
                                     if (pacienteId != null) {
@@ -112,6 +117,7 @@ fun AcceptedChatsScreen(
                     }
 
             } else {
+                // Aqui é o paciente enxergando os médicos que aceitaram ele
                 db.collection("solicitacoes")
                     .whereEqualTo("pacienteId", userId)
                     .whereEqualTo("status", "aceito")
@@ -130,6 +136,7 @@ fun AcceptedChatsScreen(
                                 val temp = mutableListOf<PacienteInfo>()
                                 var loaded = 0
 
+                                // Para cada solicitação aceita, busco os dados do médico
                                 for (sol in solicitacoes) {
                                     val medicoId = sol.getString("medicoId")
                                     if (medicoId != null) {
@@ -193,6 +200,7 @@ fun AcceptedChatsScreen(
                 .fillMaxSize()
         ) {
 
+            // Título muda de acordo com quem está logado
             Text(
                 if (isMedico) "Pacientes em atendimento" else "Médicos em atendimento",
                 fontSize = 20.sp,
@@ -206,7 +214,11 @@ fun AcceptedChatsScreen(
                 loading -> CircularProgressIndicator(color = Color(0xFF007C7A))
 
                 listaPacientes.isEmpty() ->
-                    Text("Nenhuma conversa disponível no momento. Aguarde um médico aceitar você ou solicite um novo atendimento.", color = Color.Gray)
+                    Text(
+                        "Nenhuma conversa disponível no momento. " +
+                                "Aguarde um médico aceitar você ou solicite um novo atendimento.",
+                        color = Color.Gray
+                    )
 
                 else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(listaPacientes) { paciente ->
@@ -228,6 +240,7 @@ fun ChatListItem(
 ) {
     val uidAtual = FirebaseAuth.getInstance().currentUser?.uid
 
+    // Cada card abre o ChatActivity com o outro usuário selecionado
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -259,6 +272,7 @@ fun ChatListItem(
     }
 }
 
+// Modelo simples com o que preciso para montar a lista de conversas
 data class PacienteInfo(
     val uid: String,
     val nome: String
