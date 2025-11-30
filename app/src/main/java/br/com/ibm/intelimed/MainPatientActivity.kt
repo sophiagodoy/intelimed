@@ -1,6 +1,4 @@
-/**
- * Tela principal do paciente
- */
+// Tela principal da home do paciente
 package br.com.ibm.intelimed
 
 import android.content.Intent
@@ -28,8 +26,10 @@ import androidx.compose.ui.unit.sp
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 class MainPatientActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,12 +42,7 @@ class MainPatientActivity : ComponentActivity() {
     }
 }
 
-/**
- * Busca o nome do usuário logado no Firebase:
- *  - Se existir na coleção "paciente", usa esse nome.
- *  - Caso contrário, tenta na coleção "medico".
- *  - Se der erro em qualquer ponto, retorna "Usuário".
- */
+// Busca o nome do usuário logado (primeiro tenta em "paciente", depois em "medico")
 fun buscarNomeUsuario(onResult: (String) -> Unit) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
@@ -58,10 +53,8 @@ fun buscarNomeUsuario(onResult: (String) -> Unit) {
         .addOnSuccessListener { doc ->
             if (doc.exists()) {
                 val nome = doc.getString("nome") ?: "Paciente"
-                // Exibo só o primeiro nome
                 onResult(nome.split(" ").firstOrNull() ?: nome)
             } else {
-                // Se não for paciente, tento como médico
                 db.collection("medico").document(uid).get()
                     .addOnSuccessListener { medicoDoc ->
                         val nome = medicoDoc.getString("nome") ?: "Médico"
@@ -75,17 +68,48 @@ fun buscarNomeUsuario(onResult: (String) -> Unit) {
         }
 }
 
-/**
- * Verifica se o paciente já tem um médico vinculado.
- *
- * Critério:
- *  - Existe registro em "solicitacoes" com:
- *      pacienteId = uid atual
- *      status = "aceito"
- *
- * Se tiver pelo menos uma, considero que ele já tem médico.
- */
-fun verificarVinculoMedico(onResult: (Boolean) -> Unit) {
+// Busca o médico atualmente aceito para o paciente (se existir)
+// Se não tiver nenhum com status "aceito", devolve null
+fun buscarMedicoVinculado(onResult: (String?) -> Unit) {
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val currentUser = auth.currentUser
+    val uid = currentUser?.uid
+
+    if (uid == null) {
+        onResult(null)
+        return
+    }
+
+    db.collection("solicitacoes")
+        .whereEqualTo("pacienteId", uid)
+        .whereEqualTo("status", "aceito")
+        .limit(1)
+        .get()
+        .addOnSuccessListener { snapshot ->
+            if (snapshot.isEmpty) {
+                onResult(null)
+            } else {
+                val medicoId = snapshot.documents.first().getString("medicoId")
+                onResult(medicoId)
+            }
+        }
+        .addOnFailureListener {
+            onResult(null)
+        }
+}
+
+// Verifica se o paciente pode registrar sintomas agora
+// Regra:
+// - pega o último registro em paciente/{id}/sintomas, ordenando por dataRegistro desc
+// - se nunca registrou, pode
+// - se registrou:
+//      * se foi para OUTRO médico pode registrar de novo
+//      * se foi para o MESMO médico só pode se já passaram 24h
+fun verificarPodeRegistrarSintomasHoje(
+    medicoAtualId: String,
+    onResult: (Boolean) -> Unit
+) {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
     val currentUser = auth.currentUser
@@ -96,15 +120,37 @@ fun verificarVinculoMedico(onResult: (Boolean) -> Unit) {
         return
     }
 
-    db.collection("solicitacoes")
-        .whereEqualTo("pacienteId", uid)
-        .whereEqualTo("status", "aceito")
+    db.collection("paciente")
+        .document(uid)
+        .collection("sintomas")
+        .orderBy("dataRegistro", Query.Direction.DESCENDING)
+        .limit(1)
         .get()
         .addOnSuccessListener { snapshot ->
-            onResult(!snapshot.isEmpty)
+            // nunca registrou nada ainda
+            if (snapshot.isEmpty) {
+                onResult(true)
+                return@addOnSuccessListener
+            }
+
+            val doc = snapshot.documents.first()
+            val ultimoRegistro = doc.getLong("dataRegistro") ?: 0L
+            val medicoDoUltimoRegistro = doc.getString("medicoId")
+
+            val agora = System.currentTimeMillis()
+            val vinteQuatroHorasEmMillis = 24L * 60L * 60L * 1000L
+
+            // se o último registro foi para outro médico, libero
+            if (medicoDoUltimoRegistro != null && medicoDoUltimoRegistro != medicoAtualId) {
+                onResult(true)
+                return@addOnSuccessListener
+            }
+
+            val podeRegistrar = (agora - ultimoRegistro) >= vinteQuatroHorasEmMillis
+            onResult(podeRegistrar)
         }
         .addOnFailureListener {
-            // Em caso de erro, por segurança não deixo passar
+            // se deu erro na consulta, por segurança NÃO libero
             onResult(false)
         }
 }
@@ -114,48 +160,44 @@ fun verificarVinculoMedico(onResult: (Boolean) -> Unit) {
 fun PatientHome() {
     val teal = Color(0xFF007C7A)
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
-    // Nome exibido no "Olá, {nome}"
+    // Nome exibido na saudação
     var nome by remember { mutableStateOf("Usuário") }
 
-    // Flags de vínculo com médico
+    // Situação do vínculo com médico
     var temMedicoVinculado by remember { mutableStateOf(false) }
     var carregandoVinculoMedico by remember { mutableStateOf(true) }
+    var medicoAtualId by remember { mutableStateOf<String?>(null) }
 
-    // Diálogo de confirmação de saída (bottom nav)
+    // Diálogos
     var mostrarDialogoSair by remember { mutableStateOf(false) }
-
-    // Diálogo avisando que precisa escolher médico antes de registrar sintomas
     var mostrarDialogoPrecisaMedico by remember { mutableStateOf(false) }
+    var mostrarDialogoLimite24h by remember { mutableStateOf(false) }
 
-    /**
-     * Carrega nome e vínculo na primeira montagem da tela.
-     * Isso roda uma vez quando o Composable entra na composição.
-     */
+    // Carrega nome e médico vinculado na primeira vez que entra na tela
     LaunchedEffect(Unit) {
         buscarNomeUsuario { resultado ->
             nome = resultado
         }
 
-        verificarVinculoMedico { temMedico ->
-            temMedicoVinculado = temMedico
+        buscarMedicoVinculado { medicoId ->
+            medicoAtualId = medicoId
+            temMedicoVinculado = medicoId != null
             carregandoVinculoMedico = false
         }
     }
 
-    /**
-     * Observa o ciclo de vida da Activity.
-     * Sempre que a tela volta para o estado RESUMED (por exemplo,
-     * depois de ir para SelectDoctorActivity e voltar),
-     * eu revalido o vínculo com o médico.
-     */
+    // Sempre que a Activity volta para RESUMED, revalida o médico vinculado
+    // Isso garante que cancelar um médico ou trocar de médico,
+    // a home reflete esse estado corretamente
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 carregandoVinculoMedico = true
-                verificarVinculoMedico { temMedico ->
-                    temMedicoVinculado = temMedico
+                buscarMedicoVinculado { medicoId ->
+                    medicoAtualId = medicoId
+                    temMedicoVinculado = medicoId != null
                     carregandoVinculoMedico = false
                 }
             }
@@ -163,7 +205,6 @@ fun PatientHome() {
 
         lifecycleOwner.lifecycle.addObserver(observer)
 
-        // Limpeza do observer quando o Composable sai da composição
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
@@ -186,7 +227,7 @@ fun PatientHome() {
             NavigationBar(containerColor = Color.White) {
                 NavigationBarItem(
                     selected = true,
-                    onClick = {}, // por enquanto só existe essa aba
+                    onClick = {}, // no momento só essa aba
                     icon = { Icon(Icons.Default.Home, contentDescription = null) },
                     label = { Text("Início") }
                 )
@@ -222,7 +263,7 @@ fun PatientHome() {
                 color = Color.DarkGray
             )
 
-            // Linha com os dois primeiros cards (Chat / Escolher Médico)
+            // Primeira linha de cards: Chat / Escolher Médico
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -240,7 +281,7 @@ fun PatientHome() {
                 }
             }
 
-            // Linha com Orientação Fixa / Feedback Médico
+            // Segunda linha de cards: Orientação fixa / Feedback médico
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -258,24 +299,29 @@ fun PatientHome() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            /**
-             * Botão principal do fluxo do paciente.
-             * Só libera o registro de sintomas se:
-             *  - Já tiver carregado a info do vínculo, e
-             *  - Houver médico aceito.
-             */
+            // Botão principal:
+            // - precisa ter médico vinculado
+            // - e respeita a regra de 24h por médico
             Button(
                 onClick = {
-                    // Evito clicar enquanto ainda estou consultando o Firestore
+                    // evita clique enquanto ainda está consultando o Firestore
                     if (carregandoVinculoMedico) return@Button
 
-                    if (!temMedicoVinculado) {
-                        // Não tem médico ainda: aviso que precisa escolher primeiro
+                    val medicoId = medicoAtualId
+
+                    if (!temMedicoVinculado || medicoId == null) {
+                        // não tem médico aceito: obriga escolher um primeiro
                         mostrarDialogoPrecisaMedico = true
                     } else {
-                        // Tem médico vinculado: segue para o formulário de sintomas
-                        val intent = Intent(context, SymptomLogActivity::class.java)
-                        context.startActivity(intent)
+                        // tem médico aceito: agora checa a regra de 24h para ESSE médico
+                        verificarPodeRegistrarSintomasHoje(medicoId) { podeRegistrar ->
+                            if (podeRegistrar) {
+                                val intent = Intent(context, SymptomLogActivity::class.java)
+                                context.startActivity(intent)
+                            } else {
+                                mostrarDialogoLimite24h = true
+                            }
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = teal),
@@ -287,7 +333,7 @@ fun PatientHome() {
                 Text("Registrar sintomas hoje", color = Color.White, fontSize = 16.sp)
             }
 
-            // Mensagem de orientação extra, só aparece se já sei que não tem médico
+            // Mensagem de orientação quando já sabemos que não há médico vinculado
             if (!carregandoVinculoMedico && !temMedicoVinculado) {
                 Text(
                     text = "Para registrar seus sintomas, primeiro escolha um médico para te acompanhar.",
@@ -307,7 +353,10 @@ fun PatientHome() {
                     TextButton(onClick = {
                         mostrarDialogoSair = false
                         val intent = Intent(context, AuthChoiceActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        intent.addFlags(
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                    Intent.FLAG_ACTIVITY_NEW_TASK
+                        )
                         context.startActivity(intent)
                     }) {
                         Text("Sim", color = teal)
@@ -321,7 +370,7 @@ fun PatientHome() {
             )
         }
 
-        // Diálogo avisando que precisa escolher médico antes de registrar sintomas
+        // Diálogo pedindo para escolher médico antes de registrar sintomas
         if (mostrarDialogoPrecisaMedico) {
             AlertDialog(
                 onDismissRequest = { mostrarDialogoPrecisaMedico = false },
@@ -335,7 +384,6 @@ fun PatientHome() {
                 confirmButton = {
                     TextButton(onClick = {
                         mostrarDialogoPrecisaMedico = false
-                        // Levo direto para a tela de seleção de médico
                         val intent = Intent(context, SelectDoctorActivity::class.java)
                         context.startActivity(intent)
                     }) {
@@ -349,13 +397,29 @@ fun PatientHome() {
                 }
             )
         }
+
+        // Diálogo quando já registrou para o mesmo médico nas últimas 24h
+        if (mostrarDialogoLimite24h) {
+            AlertDialog(
+                onDismissRequest = { mostrarDialogoLimite24h = false },
+                title = { Text("Registro diário já enviado") },
+                text = {
+                    Text(
+                        "Você já registrou seus sintomas para este médico nas últimas 24 horas. " +
+                                "Você poderá enviar um novo registro depois desse prazo."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { mostrarDialogoLimite24h = false }) {
+                        Text("OK", color = teal)
+                    }
+                }
+            )
+        }
     }
 }
 
-/**
- * Card de opção usado na Home (Chat, Escolher Médico, etc).
- * Usei RowScope para poder aplicar weight na Row.
- */
+// Card de opção usado na Home (Chat, Escolher Médico, etc)
 @Composable
 fun RowScope.OptionCard(
     title: String,

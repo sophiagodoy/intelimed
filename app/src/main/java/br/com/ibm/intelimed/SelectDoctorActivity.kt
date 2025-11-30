@@ -18,15 +18,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
 import br.com.ibm.intelimed.ui.theme.IntelimedTheme
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -44,15 +41,10 @@ class SelectDoctorActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
-    val context = LocalContext.current
 
-    var showDialog by remember { mutableStateOf(false) }
-    var medicoSelecionado by remember { mutableStateOf<Medico?>(null) }
-    var medicoPendenteId by remember { mutableStateOf<String?>(null) }
-    var solicitacaoId by remember { mutableStateOf<String?>(null) }
-    var medicoAceito by remember { mutableStateOf<Medico?>(null) }
-    var medicoPendente by remember { mutableStateOf<Medico?>(null) }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
+    // Paleta básica da tela
     val teal = Color(0xFF007C7A)
     val lightBg = Color(0xFFF7FDFC)
     val softGray = Color(0xFF6D6D6D)
@@ -60,17 +52,30 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
 
     val db = FirebaseFirestore.getInstance()
 
+    // Filtros / listas principais
     var especialidades by remember { mutableStateOf(listOf<String>()) }
     var medicos by remember { mutableStateOf(listOf<Medico>()) }
 
+    // Estados de loading / erro
     var loadingEspecialidades by remember { mutableStateOf(true) }
     var loadingMedicos by remember { mutableStateOf(false) }
     var erro by remember { mutableStateOf("") }
 
+    // Estado do dropdown de especialidade
     var expanded by remember { mutableStateOf(false) }
     var especialidadeSelecionada by remember { mutableStateOf("") }
 
-    // CARREGAR ESPECIALIDADES
+    // Médico já aceito e médico que está só aguardando confirmação
+    var medicoAceito by remember { mutableStateOf<Medico?>(null) }
+    var medicoPendente by remember { mutableStateOf<Medico?>(null) }
+    var medicoPendenteId by remember { mutableStateOf<String?>(null) }
+    var solicitacaoId by remember { mutableStateOf<String?>(null) }
+
+    // Popup de confirmação quando o paciente envia solicitação
+    var showDialog by remember { mutableStateOf(false) }
+    var medicoSelecionado by remember { mutableStateOf<Medico?>(null) }
+
+    //  CARREGAR ESPECIALIDADES
     LaunchedEffect(Unit) {
         getEspecialidades(
             onSucesso = {
@@ -84,19 +89,19 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
         )
     }
 
-    // OUVIR MÉDICO ACEITO
+    //  MÉDICO ACEITO EM TEMPO REAL
     LaunchedEffect(Unit) {
-        val uidPaciente = FirebaseAuth.getInstance().currentUser!!.uid
+        val uidPaciente = FirebaseAuth.getInstance().currentUser?.uid ?: return@LaunchedEffect
 
         db.collection("solicitacoes")
             .whereEqualTo("pacienteId", uidPaciente)
             .whereEqualTo("status", "aceito")
-            .addSnapshotListener { task, _ ->
-
-                if (task == null || task.isEmpty) {
+            .addSnapshotListener { result, _ ->
+                if (result == null || result.isEmpty) {
+                    // Sem médico aceito no momento
                     medicoAceito = null
                 } else {
-                    val solicitacao = task.documents.first()
+                    val solicitacao = result.documents.first()
                     val medicoId = solicitacao.getString("medicoId")
 
                     if (medicoId != null) {
@@ -108,7 +113,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                                     uid = medicoId,
                                     nome = doc.getString("nome") ?: "Sem nome",
                                     crm = doc.getString("crm") ?: "",
-                                    especialidades = listOf()
+                                    especialidades = emptyList()
                                 )
                             }
                     }
@@ -116,15 +121,14 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
             }
     }
 
-    // OUVIR MÉDICO PENDENTE
+    //  MÉDICO PENDENTE EM TEMPO REAL
     LaunchedEffect(Unit) {
-        val uid = FirebaseAuth.getInstance().currentUser!!.uid
+        val uidPaciente = FirebaseAuth.getInstance().currentUser?.uid ?: return@LaunchedEffect
 
         db.collection("solicitacoes")
-            .whereEqualTo("pacienteId", uid)
+            .whereEqualTo("pacienteId", uidPaciente)
             .whereEqualTo("status", "pendente")
             .addSnapshotListener { result, _ ->
-
                 if (result != null && !result.isEmpty) {
                     val doc = result.documents.first()
                     solicitacaoId = doc.id
@@ -140,11 +144,12 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                                     uid = medicoId,
                                     nome = medDoc.getString("nome") ?: "Sem nome",
                                     crm = medDoc.getString("crm") ?: "",
-                                    especialidades = listOf()
+                                    especialidades = emptyList()
                                 )
                             }
                     }
                 } else {
+                    // Não tem nada pendente
                     solicitacaoId = null
                     medicoPendenteId = null
                     medicoPendente = null
@@ -152,7 +157,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
             }
     }
 
-    // BUSCAR MÉDICOS
+    //  BUSCAR MÉDICOS POR ESPECIALIDADE
     fun buscarMedicos() {
         loadingMedicos = true
         medicos = emptyList()
@@ -171,7 +176,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                         else -> emptyList()
                     }
 
-                    // NÃO EXIBIR SE FOR O MÉDICO ATUAL
+                    // Não mostra o médico que já está vinculado
                     if (doc.id == medicoAtual) continue
 
                     if (especialidadeSelecionada in listaEsp) {
@@ -189,43 +194,49 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                 medicos = lista
                 loadingMedicos = false
             }
+            .addOnFailureListener {
+                erro = "Erro ao carregar médicos!"
+                loadingMedicos = false
+            }
     }
 
-    // ENVIAR SOLICITAÇÃO PARA O MÉDICO
+    //  ENVIAR SOLICITAÇÃO PARA O MÉDICO
     fun enviarSolicitacao(medico: Medico, pacienteId: String) {
         val dados = hashMapOf(
             "pacienteId" to pacienteId,
             "medicoId" to medico.uid,
             "status" to "pendente",
-            "timestamp" to com.google.firebase.Timestamp.now()
+            "timestamp" to Timestamp.now()
         )
 
         db.collection("solicitacoes")
             .add(dados)
             .addOnSuccessListener { document ->
+                // Guarda o estado da solicitação pendente
                 solicitacaoId = document.id
                 medicoPendenteId = medico.uid
                 medicoPendente = medico
             }
     }
 
+    // Cancela a solicitação que ainda está pendente
     fun cancelarSolicitacao() {
-        if (solicitacaoId != null) {
-            db.collection("solicitacoes")
-                .document(solicitacaoId!!)
-                .update("status", "cancelado")
-                .addOnSuccessListener {
-                    medicoPendenteId = null
-                    solicitacaoId = null
-                    medicoPendente = null
+        val id = solicitacaoId ?: return
 
-                    Toast.makeText(context, "Solicitação cancelada!", Toast.LENGTH_SHORT).show()
-                }
-        }
+        db.collection("solicitacoes")
+            .document(id)
+            .update("status", "cancelado")
+            .addOnSuccessListener {
+                medicoPendenteId = null
+                medicoPendente = null
+                solicitacaoId = null
+                Toast.makeText(context, "Solicitação cancelada!", Toast.LENGTH_SHORT).show()
+            }
     }
 
+    // Encerra o atendimento com o médico atual (muda de "aceito" para "cancelado")
     fun cancelarAtendimento() {
-        val uidPaciente = FirebaseAuth.getInstance().currentUser!!.uid
+        val uidPaciente = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
         db.collection("solicitacoes")
             .whereEqualTo("pacienteId", uidPaciente)
@@ -279,7 +290,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
 
-            // CARD MÉDICO ATUAL (ACEITO)
+            // Bloco que mostra o médico já aceito
             if (medicoAceito != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -302,10 +313,16 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                             medicoAceito!!.nome,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF007C7A)
+                            color = teal
+                        )
+                        Text(
+                            "CRM: ${medicoAceito!!.crm}",
+                            fontSize = 14.sp,
+                            color = Color.Gray
                         )
                     }
                 }
+
                 Button(
                     onClick = { cancelarAtendimento() },
                     colors = ButtonDefaults.buttonColors(containerColor = green),
@@ -316,10 +333,14 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                 }
             }
 
-            // DROPDOWN ESPECIALIDADE
-            var textFieldSize by remember { mutableStateOf(androidx.compose.ui.geometry.Size.Zero) }
+            // Linha sutil entre o topo e o restante da tela
+            HorizontalDivider(
+                color = teal.copy(alpha = 0.2f),
+                thickness = 1.dp
+            )
 
-            Box {
+            // DROPDOWN DE ESPECIALIDADE
+            Box(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = especialidadeSelecionada,
                     onValueChange = {},
@@ -343,17 +364,12 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onGloballyPositioned { coordinates ->
-                            textFieldSize = coordinates.size.toSize()
-                        }
                         .clickable { expanded = true }
                 )
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier
-                        .width(with(LocalDensity.current) { textFieldSize.width.toDp() })
+                    onDismissRequest = { expanded = false }
                 ) {
                     especialidades.forEach { item ->
                         DropdownMenuItem(
@@ -371,7 +387,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
             if (erro.isNotEmpty())
                 Text(erro, color = Color.Red)
 
-            // CARD MÉDICO PENDENTE (AGUARDANDO CONFIRMAÇÃO)
+            //  CARD DO MÉDICO PENDENTE
             if (medicoPendente != null && medicoAceito == null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -416,11 +432,13 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                 }
             }
 
-            // LISTA DE MÉDICOS
+            //  LISTA DE MÉDICOS PARA ESCOLHER
             if (especialidadeSelecionada.isNotEmpty()) {
+
                 if (medicoAceito != null || medicoPendenteId != null) {
                     Text(
-                        text = "Você já possui um médico selecionado. Para escolher outro, encerre o atendimento ou cancele a solicitação atual.",
+                        text = "Você já possui um médico selecionado. " +
+                                "Para escolher outro, encerre o atendimento ou cancele a solicitação atual.",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
@@ -445,6 +463,8 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
 
                 medicos.forEach { medico ->
 
+                    val pendente = medicoPendenteId == medico.uid
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -462,10 +482,9 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
 
-                            // AVATAR + NOME + CRM
+                            // Avatar + nome + CRM
                             Row(verticalAlignment = Alignment.CenterVertically) {
 
-                                // AVATAR COM INICIAIS
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
@@ -477,8 +496,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                                         color = teal.copy(alpha = 0.15f)
                                     ) {
                                         Box(
-                                            modifier = Modifier
-                                                .size(48.dp),
+                                            modifier = Modifier.size(48.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
@@ -506,9 +524,6 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
                                 }
                             }
 
-                            // BOTÃO
-                            val pendente = medicoPendenteId == medico.uid
-
                             Button(
                                 onClick = {
                                     enviarSolicitacao(
@@ -535,7 +550,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
             }
         }
 
-        // POPUP CONFIRMAÇÃO
+        //  POPUP DE CONFIRMAÇÃO DA SOLICITAÇÃO
         if (showDialog && medicoSelecionado != null) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
@@ -571,6 +586,7 @@ fun SelectDoctorScreen(onBack: (() -> Unit)? = null) {
     }
 }
 
+// Modelo do médico que usamos nessa tela
 data class Medico(
     val uid: String = "",
     val nome: String,

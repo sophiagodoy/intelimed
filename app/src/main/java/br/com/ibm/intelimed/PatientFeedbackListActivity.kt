@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,11 +29,11 @@ import br.com.ibm.intelimed.ui.theme.IntelimedTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-// mesmo teal que você já usa
+// Cores base que estamos usando na tela
 private val Teal = Color(0xFF007C7A)
 private val CardBg = Color(0xFFFFFFFF)
 
-// modelo para o feedback visível pro paciente
+// Modelo do item que o paciente enxerga na lista de feedbacks
 data class PatientFeedback(
     val id: String = "",
     val date: String = "",
@@ -57,10 +58,14 @@ fun PatientFeedbackListScreen() {
     val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
 
+    // Lista de feedbacks que vai sendo preenchida com o que vem do Firestore
     val feedbacks = remember { mutableStateListOf<PatientFeedback>() }
+
+    // Controle de carregamento e erro de tela
     var carregando by remember { mutableStateOf(true) }
     var erro by remember { mutableStateOf<String?>(null) }
 
+    // Busca inicial dos feedbacks do paciente logado
     LaunchedEffect(Unit) {
         val uidPaciente = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -118,7 +123,7 @@ fun PatientFeedbackListScreen() {
                         (context as? Activity)?.finish()
                     }) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar",
                             tint = Color.White
                         )
@@ -138,6 +143,7 @@ fun PatientFeedbackListScreen() {
                 .padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
 
+            // Estado de carregando
             if (carregando) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -148,6 +154,7 @@ fun PatientFeedbackListScreen() {
                 return@Column
             }
 
+            // Estado de erro
             if (erro != null) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -158,6 +165,7 @@ fun PatientFeedbackListScreen() {
                 return@Column
             }
 
+            // Nenhum feedback ainda
             if (feedbacks.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -166,6 +174,7 @@ fun PatientFeedbackListScreen() {
                     Text("Você ainda não tem feedbacks do médico.", color = Color.Gray)
                 }
             } else {
+                // Lista de feedbacks do paciente
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -184,6 +193,7 @@ fun PatientFeedbackListScreen() {
 fun PatientFeedbackCard(feedback: PatientFeedback) {
     val context = LocalContext.current
 
+    // Cada card representa um registro de sintomas que recebeu retorno do médico
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CardBg),
@@ -191,6 +201,7 @@ fun PatientFeedbackCard(feedback: PatientFeedback) {
             .fillMaxWidth()
             .shadow(elevation = 4.dp, shape = RoundedCornerShape(20.dp))
             .clickable {
+                // Ao clicar, abre a tela de detalhes do feedback
                 val intent = Intent(context, DoctorFeedbackActivity::class.java).apply {
                     putExtra("feedback", feedback.feedback)
                     putExtra("dataRegistro", feedback.date)
@@ -203,9 +214,9 @@ fun PatientFeedbackCard(feedback: PatientFeedback) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp)  // padding mais uniforme
+                .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
-            // Data
+            // Data do registro
             Text(
                 text = feedback.date,
                 fontWeight = FontWeight.Bold,
@@ -215,7 +226,7 @@ fun PatientFeedbackCard(feedback: PatientFeedback) {
 
             Spacer(Modifier.height(6.dp))
 
-            // Sentimento
+            // Sentimento do paciente no dia
             if (feedback.sentimento.isNotBlank()) {
                 Text(
                     text = "Como você estava:",
@@ -232,7 +243,7 @@ fun PatientFeedbackCard(feedback: PatientFeedback) {
                 Spacer(Modifier.height(8.dp))
             }
 
-            // Título do feedback
+            // Título do trecho de feedback
             Text(
                 text = "Feedback do médico:",
                 fontWeight = FontWeight.SemiBold,
@@ -240,7 +251,7 @@ fun PatientFeedbackCard(feedback: PatientFeedback) {
                 color = Teal
             )
 
-            // Trechinho do feedback
+            // Mostro só o começo do feedback aqui, o restante fica na tela de detalhes
             Text(
                 text = feedback.feedback.take(120) +
                         if (feedback.feedback.length > 120) "..." else "",
@@ -250,7 +261,6 @@ fun PatientFeedbackCard(feedback: PatientFeedback) {
         }
     }
 }
-
 
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
