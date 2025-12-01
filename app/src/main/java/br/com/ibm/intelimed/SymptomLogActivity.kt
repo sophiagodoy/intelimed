@@ -1,0 +1,523 @@
+/**
+ * Tela de registro de sintomas do Paciente
+ */
+
+package br.com.ibm.intelimed
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import br.com.ibm.intelimed.ui.theme.IntelimedTheme
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegistroSintomas() {
+
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    // Campos principais do formulário (um estado pra cada resposta da tela)
+    var sentimento by remember { mutableStateOf(TextFieldValue("")) }
+    var dormiuBem by remember { mutableStateOf("") }
+    var cansaco by remember { mutableStateOf("") }
+    var alimentacao by remember { mutableStateOf("") }
+    var hidratacao by remember { mutableStateOf("") }
+
+    var sentiuDor by remember { mutableStateOf("") }
+    var intensidadeDor by remember { mutableStateOf(TextFieldValue("")) }
+    var localDor by remember { mutableStateOf(TextFieldValue("")) }
+    var tipoDorMudou by remember { mutableStateOf("") }
+
+    var febre by remember { mutableStateOf("") }
+    var temperatura by remember { mutableStateOf(TextFieldValue("")) }
+    var enjoo by remember { mutableStateOf("") }
+    var tontura by remember { mutableStateOf("") }
+    var sangramento by remember { mutableStateOf("") }
+
+    var fezCicatrizacao by remember { mutableStateOf("") }
+    var estadoCicatrizacao by remember { mutableStateOf(TextFieldValue("")) }
+
+    var tomouMedicacao by remember { mutableStateOf("") }
+    var qualMedicacao by remember { mutableStateOf(TextFieldValue("")) }
+    var horarioMedicacao by remember { mutableStateOf(TextFieldValue("")) }
+
+    var observacoes by remember { mutableStateOf(TextFieldValue("")) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    // Título padrão das telas de fluxo do paciente
+                    Text(
+                        text = "Registro de Sintomas",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        // Volta para a home do paciente limpando a pilha
+                        val intent = Intent(context, MainPatientActivity::class.java)
+                        intent.addFlags(
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                                    Intent.FLAG_ACTIVITY_NEW_TASK
+                        )
+                        context.startActivity(intent)
+                        (context as? android.app.Activity)?.finish()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF007C7A),
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(20.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+
+            // Texto inicial explicando para onde vão as respostas
+            Text(
+                text = "As respostas desse registro serão enviadas ao médico que você escolheu para te acompanhar.",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+
+            Text(
+                text = "DADOS GERAIS",
+                color = Color(0xFF007C7A),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            // Como a pessoa está se sentindo em geral (campo livre)
+            OutlinedTextField(
+                value = sentimento,
+                onValueChange = { sentimento = it },
+                label = { Text("Como você está se sentindo hoje? (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Perguntas mais diretas de rotina/estado geral
+            PerguntaSimNao("Dormiu bem na última noite?", dormiuBem) { dormiuBem = it }
+            PerguntaSimNao("Sentiu cansaço excessivo?", cansaco) { cansaco = it }
+            PerguntaSimNao("Está se alimentando normalmente?", alimentacao) { alimentacao = it }
+            PerguntaSimNao("Está se hidratando bem?", hidratacao) { hidratacao = it }
+
+            // Seção focada em dor e desconforto
+            Text(
+                text = "DOR E DESCONFORTO",
+                color = Color(0xFF007C7A),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            PerguntaSimNao("Está sentindo dor atualmente?", sentiuDor) { sentiuDor = it }
+
+            OutlinedTextField(
+                value = intensidadeDor,
+                onValueChange = { intensidadeDor = it },
+                label = { Text("Qual a intensidade da dor (0 a 10)? (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = localDor,
+                onValueChange = { localDor = it },
+                label = { Text("Onde está a dor? (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            PerguntaSimNao(
+                "O tipo de dor mudou desde a última vez?",
+                tipoDorMudou
+            ) { tipoDorMudou = it }
+
+            // Seção com sintomas físicos mais gerais
+            Text(
+                text = "SINTOMAS FÍSICOS",
+                color = Color(0xFF007C7A),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            PerguntaSimNao("Teve febre nas últimas 24h?", febre) { febre = it }
+
+            OutlinedTextField(
+                value = temperatura,
+                onValueChange = { temperatura = it },
+                label = { Text("Temperatura medida (°C) (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            PerguntaSimNao("Teve enjoo, vômito ou diarreia?", enjoo) { enjoo = it }
+            PerguntaSimNao("Apresentou tontura ou fraqueza?", tontura) { tontura = it }
+            PerguntaSimNao("Teve sangramento, secreção ou inchaço?", sangramento) { sangramento = it }
+
+            // Parte só para coisas ligadas à cicatrização / feridas
+            Text(
+                text = "CICATRIZAÇÃO / FERIMENTOS",
+                color = Color(0xFF007C7A),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            PerguntaSimNao(
+                "Fez algum procedimento ou cicatrização recente?",
+                fezCicatrizacao
+            ) { fezCicatrizacao = it }
+
+            OutlinedTextField(
+                value = estadoCicatrizacao,
+                onValueChange = { estadoCicatrizacao = it },
+                label = { Text("Como está a cicatrização? (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Seção específica sobre medicamentos
+            Text(
+                text = "MEDICAÇÃO",
+                color = Color(0xFF007C7A),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            PerguntaSimNao(
+                "Tomou algum medicamento nas últimas 24h?",
+                tomouMedicacao
+            ) { tomouMedicacao = it }
+
+            OutlinedTextField(
+                value = qualMedicacao,
+                onValueChange = { qualMedicacao = it },
+                label = { Text("Qual medicação? (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = horarioMedicacao,
+                onValueChange = { horarioMedicacao = it },
+                label = { Text("Em qual horário? (opcional)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Campo livre para o paciente escrever qualquer coisa que achar importante
+            Text(
+                text = "OBSERVAÇÕES GERAIS",
+                color = Color(0xFF007C7A),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            OutlinedTextField(
+                value = observacoes,
+                onValueChange = { observacoes = it },
+                label = { Text("Observações adicionais (opcional)") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+            )
+
+            // Controle do alerta de confirmação antes de finalizar
+            var mostrarDialogo by remember { mutableStateOf(false) }
+
+            if (mostrarDialogo) {
+                AlertDialog(
+                    onDismissRequest = { mostrarDialogo = false },
+                    title = { Text("Confirmar envio") },
+                    text = { Text("Deseja confirmar o envio das respostas?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            mostrarDialogo = false
+
+                            Toast.makeText(
+                                context,
+                                "Sintomas enviados ao médico!",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            val intent = Intent(context, MainPatientActivity::class.java)
+                            context.startActivity(intent)
+                        }) {
+                            Text("Sim")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { mostrarDialogo = false }) {
+                            Text("Não")
+                        }
+                    }
+                )
+            }
+
+            // Botão que de fato dispara o salvamento no Firestore
+            Button(
+                onClick = {
+                    savePatientSymptoms(
+                        context = context,
+                        sentimento = sentimento.text,
+                        dormiuBem = dormiuBem,
+                        cansaco = cansaco,
+                        alimentacao = alimentacao,
+                        hidratacao = hidratacao,
+                        sentiuDor = sentiuDor,
+                        intensidadeDor = intensidadeDor.text,
+                        localDor = localDor.text,
+                        tipoDorMudou = tipoDorMudou,
+                        febre = febre,
+                        temperatura = temperatura.text,
+                        enjoo = enjoo,
+                        tontura = tontura,
+                        sangramento = sangramento,
+                        fezCicatrizacao = fezCicatrizacao,
+                        estadoCicatrizacao = estadoCicatrizacao.text,
+                        tomouMedicacao = tomouMedicacao,
+                        qualMedicacao = qualMedicacao.text,
+                        horarioMedicacao = horarioMedicacao.text,
+                        observacoes = observacoes.text,
+                        onSuccess = { pacienteId, relatorioId ->
+                            // Depois de salvar, só aviso e volto pra home
+                            Toast.makeText(
+                                context,
+                                "Sintomas enviados ao médico!",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            val intent = Intent(context, MainPatientActivity::class.java)
+                            context.startActivity(intent)
+                        }
+                    )
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007C7A)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp)
+            ) {
+                Text("Enviar respostas", fontSize = 18.sp)
+            }
+        }
+    }
+}
+
+// Activity que só sobe o Composable na tela
+class SymptomLogActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            IntelimedTheme {
+                RegistroSintomas()
+            }
+        }
+    }
+}
+
+// Função que agrupa tudo e salva o relatório tanto no espaço do paciente quanto do médico
+fun savePatientSymptoms(
+    context: Context,
+    sentimento: String,
+    dormiuBem: String,
+    cansaco: String,
+    alimentacao: String,
+    hidratacao: String,
+    sentiuDor: String,
+    intensidadeDor: String,
+    localDor: String,
+    tipoDorMudou: String,
+    febre: String,
+    temperatura: String,
+    enjoo: String,
+    tontura: String,
+    sangramento: String,
+    fezCicatrizacao: String,
+    estadoCicatrizacao: String,
+    tomouMedicacao: String,
+    qualMedicacao: String,
+    horarioMedicacao: String,
+    observacoes: String,
+    onSuccess: (pacienteId: String, relatorioId: String) -> Unit
+) {
+    val auth = Firebase.auth
+    val db = Firebase.firestore
+    val pacienteId = auth.currentUser?.uid
+
+    // Se não tiver paciente logado, nem tento salvar
+    if (pacienteId == null) {
+        Toast.makeText(context, "Error: patient not authenticated.", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    // Gero um ID de relatório e uso o mesmo tanto para o paciente quanto para o médico
+    val relatorioId = db.collection("paciente")
+        .document(pacienteId)
+        .collection("sintomas")
+        .document().id
+
+    // Monto o map com todas as respostas do formulário
+    val sintomas = hashMapOf(
+        "pacienteId" to pacienteId,
+        "relatorioId" to relatorioId,
+        "dataRegistro" to System.currentTimeMillis(),
+        "sentimento" to sentimento,
+        "dormiuBem" to dormiuBem,
+        "cansaco" to cansaco,
+        "alimentacao" to alimentacao,
+        "hidratacao" to hidratacao,
+        "sentiuDor" to sentiuDor,
+        "intensidadeDor" to intensidadeDor,
+        "localDor" to localDor,
+        "tipoDorMudou" to tipoDorMudou,
+        "febre" to febre,
+        "temperatura" to temperatura,
+        "enjoo" to enjoo,
+        "tontura" to tontura,
+        "sangramento" to sangramento,
+        "fezCicatrizacao" to fezCicatrizacao,
+        "estadoCicatrizacao" to estadoCicatrizacao,
+        "tomouMedicacao" to tomouMedicacao,
+        "qualMedicacao" to qualMedicacao,
+        "horarioMedicacao" to horarioMedicacao,
+        "observacoes" to observacoes
+    )
+
+    // Primeiro tento achar um médico vinculado para esse paciente (status aceito)
+    db.collection("solicitacoes")
+        .whereEqualTo("pacienteId", pacienteId)
+        .whereEqualTo("status", "aceito")
+        .get()
+        .addOnSuccessListener { result ->
+            if (!result.isEmpty) {
+                val medicoId = result.documents.first().getString("medicoId")!!
+
+                // Se tiver médico, salvo também em /medico/{id}/relatorios/{relatorioId}
+                db.collection("medico")
+                    .document(medicoId)
+                    .collection("relatorios")
+                    .document(relatorioId)
+                    .set(sintomas)
+            }
+        }
+
+    // Registro oficial do relatório na pasta do paciente
+    db.collection("paciente")
+        .document(pacienteId)
+        .collection("sintomas")
+        .document(relatorioId)
+        .set(sintomas)
+        .addOnSuccessListener {
+            onSuccess(pacienteId, relatorioId)
+        }
+        .addOnFailureListener { e ->
+            Toast.makeText(context, "Error saving data: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+}
+
+// Busca todas as especialidades cadastradas nos médicos (usado em outra tela)
+fun getEspecialidades(
+    onSucesso: (List<String>) -> Unit,
+    onErro: (Exception) -> Unit
+) {
+    val db = Firebase.firestore
+
+    db.collection("medico")
+        .get()
+        .addOnSuccessListener { task ->
+            val lista = mutableListOf<String>()
+
+            for (documento in task) {
+                val espCampo = documento.get("especialidade")
+
+                // Aqui trato tanto o caso de ser string única quanto lista
+                val espList = when (espCampo) {
+                    is String -> listOf(espCampo)
+                    is List<*> -> espCampo.map { it.toString() }
+                    else -> emptyList()
+                }
+
+                lista.addAll(espList)
+            }
+
+            onSucesso(lista.distinct())
+        }
+        .addOnFailureListener { erro ->
+            onErro(erro)
+        }
+}
+
+// Componente de pergunta "Sim / Não" reaproveitado em vários pontos
+@Composable
+fun PerguntaSimNao(
+    pergunta: String,
+    resposta: String,
+    onResposta: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(pergunta)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = resposta == "Sim",
+                onClick = { onResposta("Sim") },
+                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF007C7A))
+            )
+            Text("Sim")
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            RadioButton(
+                selected = resposta == "Não",
+                onClick = { onResposta("Não") },
+                colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF007C7A))
+            )
+            Text("Não")
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegistroSintomasPreview() {
+    IntelimedTheme {
+        RegistroSintomas()
+    }
+}

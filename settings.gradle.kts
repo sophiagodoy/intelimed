@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Intelimed"
 include(":app")
- 
+include(":shared")

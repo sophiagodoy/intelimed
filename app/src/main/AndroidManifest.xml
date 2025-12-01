@@ -12,17 +12,165 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Intelimed"
         tools:targetApi="31">
+
+        <!-- Tela inicial -->
         <activity
-            android:name=".MainActivity"
+            android:name=".AuthChoiceActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="Intelimed"
             android:theme="@style/Theme.Intelimed">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    </application>
 
+        <!-- Patient home -->
+        <activity
+            android:name=".MainPatientActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Doctor home -->
+        <activity
+            android:name=".MainDoctorActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Cadastro médico -->
+        <activity
+            android:name=".SignUpDoctorActivity"
+            android:exported="false"
+            android:label="Cadastro de Médico"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Login -->
+        <activity
+            android:name=".SignInActivity"
+            android:exported="false"
+            android:label="Tela de Login"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Recuperação senha -->
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false"
+            android:label="Recuperar Senha"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- OnBoarding -->
+        <activity
+            android:name=".OnBoardingActivity"
+            android:exported="false"
+            android:label="Boas-vindas"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Encaminhamento -->
+        <activity
+            android:name=".GenerateForwardingActivity"
+            android:exported="false"
+            android:label="Gerar Encaminhamento"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Orientações Médicas -->
+        <activity
+            android:name=".MedicalGuidanceActivity"
+            android:exported="false"
+            android:label="Orientações Médicas"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Doctor Instructions -->
+        <activity
+            android:name=".DoctorInstructionsActivity"
+            android:exported="false"
+            android:label="Instruções do Médico"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Registro de sintomas -->
+        <activity
+            android:name=".SymptomLogActivity"
+            android:exported="false"
+            android:label="Registro de Sintomas"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Termos resumidos -->
+        <activity
+            android:name=".TermsOfUseActivity"
+            android:exported="false"
+            android:label="Termos e Privacidade"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Termos completos -->
+        <activity
+            android:name=".TermsFullActivity"
+            android:exported="false"
+            android:label="Termos Completos"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Cadastro de Paciente -->
+        <activity
+            android:name=".SignUpPatientActivity"
+            android:exported="false"
+            android:label="Cadastro de Paciente"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Relatórios -->
+        <activity
+            android:name=".ReportsActivity"
+            android:exported="false"
+            android:label="Relatórios"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Lista de pacientes -->
+        <activity
+            android:name=".PatientListActivity"
+            android:exported="false"
+            android:label="Lista de Pacientes"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Chat -->
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false"
+            android:label="Chat"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Lista de chats -->
+        <activity
+            android:name=".AcceptedChatsActivity"
+            android:exported="false"
+            android:label="Lista de chat"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Selecionar Médico -->
+        <activity
+            android:name=".SelectDoctorActivity"
+            android:exported="false"
+            android:label="Selecionar Médico"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Responder paciente -->
+        <activity
+            android:name=".RespondingPatientActivity"
+            android:exported="false"
+            android:label="Responder Paciente"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Feedback do médico -->
+        <activity
+            android:name=".DoctorFeedbackActivity"
+            android:exported="false"
+            android:label="Feedback do Médico"
+            android:theme="@style/Theme.Intelimed" />
+
+        <!-- Lista de feedback do paciente -->
+        <activity
+            android:name=".PatientFeedbackListActivity"
+            android:exported="false"
+            android:label="Feedbacks diários"
+            android:theme="@style/Theme.Intelimed" />
+
+    </application>
 </manifest>
